@@ -1,299 +1,1718 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Fracture Monitoring System</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>골절측정 | 云健康 YunHealth</title>
 
-  <!-- ✅ PWA 核心配置 -->
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#1a73e8" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="骨折AI" />
+<!-- ✅ PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a2e4a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="骨折AI">
+<link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root {
+    --navy: #1a2e4a;
+    --navy-mid: #1e4080;
+    --med-blue: #2563eb;
+    --light-blue: #dbeafe;
+    --accent: #0ea5e9;
+    --white: #ffffff;
+    --surface: #f8fafc;
+    --surface2: #f1f5f9;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --text2: #475569;
+    --text3: #94a3b8;
+    --success: #10b981;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --grad-low: #22c55e;
+    --grad-mid: #f59e0b;
+    --grad-high: #ef4444;
+    --sidebar-w: 260px;
+    --topbar-h: 64px;
+    --font: 'Pretendard', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; font-family: var(--font); background: var(--surface); color: var(--text); }
 
-  <!-- ✅ iOS 图标 -->
-  <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png" />
-  <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png" />
+  /* ── TOP BAR ── */
+  #topbar {
+    position: fixed; top: 0; left: 0; right: 0; height: var(--topbar-h);
+    background: var(--navy); display: flex; align-items: center;
+    padding: 0 24px; z-index: 100; gap: 0;
+    border-bottom: 2px solid var(--navy-mid);
+  }
+  #topbar .user-info {
+    font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.4; min-width: 200px;
+  }
+  #topbar .user-info strong { color: rgba(255,255,255,0.9); font-weight: 500; }
+  #topbar .logo {
+    flex: 1; text-align: center; font-size: 22px; font-weight: 700;
+    color: #ffffff; letter-spacing: 2px;
+  }
+  #topbar .logo span { color: var(--accent); }
+  #topbar .brand {
+    min-width: 200px; text-align: right; display: flex; align-items: center;
+    justify-content: flex-end; gap: 12px;
+  }
+  #topbar .brand-name {
+    font-size: 15px; font-weight: 600; color: #ffffff; letter-spacing: 1px;
+  }
+  #topbar .brand-sub { font-size: 11px; color: var(--accent); }
+  .lang-btn {
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.25);
+    color: rgba(255,255,255,0.8); padding: 4px 10px; border-radius: 20px;
+    cursor: pointer; font-size: 12px; font-family: var(--font); transition: all 0.2s;
+  }
+  .lang-btn:hover, .lang-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
-  <!-- ✅ 桌面图标 -->
-  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
-  <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png" />
+  /* ── LAYOUT ── */
+  #layout { display: flex; margin-top: var(--topbar-h); min-height: calc(100vh - var(--topbar-h)); }
 
-  <!-- ✅ SEO & 全球访问优化 -->
-  <meta name="description" content="AI骨折智能监测与分级识别平台 — 支持图片、视频、实时摄像头诊断" />
-  <meta name="keywords" content="骨折检测, AI诊断, 骨折分类, fracture detection, medical AI" />
-  <meta property="og:title" content="AI骨折智能监测系统" />
-  <meta property="og:description" content="骨折智能监测与分级识别平台" />
-  <meta property="og:type" content="website" />
+  /* ── SIDEBAR ── */
+  #sidebar {
+    width: var(--sidebar-w); background: var(--white); border-right: 1px solid var(--border);
+    flex-shrink: 0; display: flex; flex-direction: column; overflow-y: auto;
+  }
+  .sidebar-section { padding: 16px; border-bottom: 1px solid var(--border); }
+  .sidebar-section h4 {
+    font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase;
+    letter-spacing: 1px; margin-bottom: 10px;
+  }
+  .patient-row {
+    padding: 10px 12px; border-radius: 8px; cursor: pointer;
+    transition: background 0.15s; margin-bottom: 4px;
+    border: 1px solid transparent;
+  }
+  .patient-row:hover { background: var(--surface2); }
+  .patient-row.active { background: var(--light-blue); border-color: #93c5fd; }
+  .patient-row .p-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .patient-row .p-info { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .p-badge {
+    display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 12px;
+    font-weight: 600; margin-top: 4px;
+  }
+  .badge-new { background: #dbeafe; color: #1d4ed8; }
+  .badge-review { background: #fef3c7; color: #b45309; }
+  .badge-done { background: #d1fae5; color: #065f46; }
 
-  <link rel="stylesheet" href="style.css" />
+  /* ── MAIN PANEL ── */
+  #main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 
-  <style>
-    /* ── PWA 安装横幅 ── */
-    #pwaInstallBanner {
-      display: none;
-      position: fixed;
-      bottom: 1.5rem;
-      left: 50%;
-      transform: translateX(-50%);
-      background: linear-gradient(135deg, #1a73e8, #0d47a1);
-      color: white;
-      padding: 1rem 1.5rem;
-      border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(26,115,232,0.45);
-      z-index: 9999;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      max-width: 420px;
-      width: calc(100% - 2rem);
-      animation: slideUp 0.4s ease;
-    }
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateX(-50%) translateY(20px); }
-      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
-    }
-    #pwaInstallBanner .banner-icon { font-size: 2rem; }
-    #pwaInstallBanner .banner-text { flex: 1; }
-    #pwaInstallBanner .banner-text strong { display: block; font-size: 0.95rem; }
-    #pwaInstallBanner .banner-text span { font-size: 0.8rem; opacity: 0.85; }
-    #pwaInstallBtn {
-      background: white;
-      color: #1a73e8;
-      border: none;
-      padding: 0.5rem 1.1rem;
-      border-radius: 50px;
-      font-weight: 700;
-      cursor: pointer;
-      white-space: nowrap;
-      font-size: 0.85rem;
-    }
-    #pwaDismissBtn {
-      background: none;
-      border: none;
-      color: rgba(255,255,255,0.7);
-      cursor: pointer;
-      font-size: 1.2rem;
-      padding: 0.2rem;
-    }
+  /* ── VIEWER ── */
+  #viewer-bar {
+    background: #1e293b; padding: 0 16px; height: 44px; display: flex;
+    align-items: center; gap: 10px; border-bottom: 1px solid #334155;
+  }
+  .view-btn {
+    background: transparent; border: 1px solid #475569; color: #94a3b8;
+    padding: 4px 14px; border-radius: 6px; cursor: pointer; font-size: 12px;
+    font-family: var(--font); transition: all 0.2s;
+  }
+  .view-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .view-btn.active { background: var(--navy-mid); border-color: var(--accent); color: #fff; }
 
-    /* ── 网络状态指示 ── */
-    #netStatus {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      padding: 0.4rem;
-      text-align: center;
-      font-size: 0.8rem;
-      font-weight: 600;
-      z-index: 9998;
-      transform: translateY(-100%);
-      transition: transform 0.3s ease;
-    }
-    #netStatus.show { transform: translateY(0); }
-    #netStatus.offline { background: #d93025; color: white; }
-    #netStatus.online  { background: #137333; color: white; }
-  </style>
+  #viewer-area {
+    background: #0f172a; flex: none; position: relative;
+    min-height: 420px; display: flex; align-items: stretch;
+  }
+
+  #image-viewer {
+    flex: 1; position: relative; display: flex; align-items: center;
+    justify-content: center; min-height: 420px; overflow: hidden;
+  }
+
+  #drop-zone {
+    width: 100%; height: 100%; min-height: 420px;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; border: 2px dashed #334155; border-radius: 12px;
+    margin: 16px; color: #64748b; cursor: pointer; transition: all 0.2s;
+    text-align: center; padding: 32px;
+  }
+  #drop-zone:hover { border-color: var(--accent); color: var(--accent); }
+  #drop-zone .dz-icon { font-size: 48px; margin-bottom: 16px; }
+  #drop-zone h3 { font-size: 16px; margin-bottom: 8px; }
+  #drop-zone p { font-size: 13px; opacity: 0.7; }
+  #drop-zone input { display: none; }
+
+  #image-canvas {
+    max-width: 100%; max-height: 480px; display: none;
+    border-radius: 4px;
+  }
+  #heatmap-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; display: none;
+  }
+  #heatmap-canvas { display: none; }
+
+  /* ── INFO PANEL ── */
+  #info-panel {
+    width: 280px; background: #1e293b; border-left: 1px solid #334155;
+    padding: 16px; display: flex; flex-direction: column; gap: 12px;
+    overflow-y: auto; flex-shrink: 0;
+  }
+  .info-card {
+    background: #0f172a; border-radius: 8px; padding: 12px;
+    border: 1px solid #334155;
+  }
+  .info-card h5 { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .info-card .val { font-size: 20px; font-weight: 700; color: #f1f5f9; }
+  .info-card .sub { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+  .conf-bar { height: 8px; background: #334155; border-radius: 4px; margin-top: 8px; overflow: hidden; }
+  .conf-fill { height: 100%; border-radius: 4px; transition: width 0.8s ease; }
+
+  /* ── ANALYSIS SECTION ── */
+  #analysis-section { padding: 24px; background: var(--white); }
+  #analysis-section h2 {
+    font-size: 20px; font-weight: 700; color: var(--navy); margin-bottom: 20px;
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .analysis-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px; margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 20px;
+  }
+  .stat-card .label { font-size: 12px; color: var(--text2); margin-bottom: 6px; font-weight: 500; }
+  .stat-card .number { font-size: 28px; font-weight: 700; color: var(--navy); }
+  .stat-card .unit { font-size: 13px; color: var(--text2); margin-left: 4px; }
+  .stat-card .change { font-size: 12px; margin-top: 4px; }
+  .pos { color: var(--success); } .neg { color: var(--danger); }
+
+  .charts-row {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 24px;
+  }
+  .chart-box {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px;
+  }
+  .chart-box h4 { font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 12px; }
+  .chart-box canvas { max-height: 180px; }
+
+  /* ── CAMERA SECTION ── */
+  #camera-section {
+    padding: 24px; background: var(--surface2);
+    border-top: 1px solid var(--border);
+  }
+  .camera-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .cam-box {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+  }
+  .cam-header {
+    background: var(--navy); color: #fff; padding: 12px 16px;
+    font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px;
+  }
+  .cam-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; }
+  .cam-dot.active { background: var(--success); animation: blink 1.2s infinite; }
+  @keyframes blink { 0%,100%{ opacity:1 } 50%{ opacity:0.3 } }
+  .cam-video { width: 100%; background: #000; display: block; min-height: 180px; }
+  .cam-controls { padding: 12px 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    padding: 8px 18px; border-radius: 8px; border: none; cursor: pointer;
+    font-family: var(--font); font-size: 13px; font-weight: 600;
+    transition: all 0.18s; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-primary { background: var(--navy); color: #fff; }
+  .btn-primary:hover { background: var(--navy-mid); }
+  .btn-accent { background: var(--med-blue); color: #fff; }
+  .btn-accent:hover { background: #1d4ed8; }
+  .btn-outline { background: transparent; color: var(--navy); border: 1px solid var(--border); }
+  .btn-outline:hover { background: var(--surface2); }
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+
+  /* ── REPORT / DATA ── */
+  #report-section { padding: 24px; background: var(--white); border-top: 1px solid var(--border); }
+  #report-section h2 { font-size: 18px; font-weight: 700; color: var(--navy); margin-bottom: 16px; }
+  .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .data-table th {
+    background: var(--navy); color: #fff; padding: 10px 14px;
+    text-align: left; font-weight: 600;
+  }
+  .data-table td { padding: 9px 14px; border-bottom: 1px solid var(--border); }
+  .data-table tr:nth-child(even) td { background: var(--surface); }
+  .data-table tr:hover td { background: var(--light-blue); }
+
+  /* ── DISCLAIMER ── */
+  #disclaimer {
+    background: #fef9c3; border-top: 2px solid #fbbf24;
+    padding: 16px 24px; text-align: center;
+    font-size: 12px; color: #78350f; line-height: 1.6;
+  }
+
+  /* ── CODE SECTION ── */
+  #code-section {
+    padding: 24px; background: var(--surface);
+    border-top: 1px solid var(--border);
+  }
+  #code-section h2 { font-size: 18px; font-weight: 700; color: var(--navy); margin-bottom: 16px; }
+  .code-block {
+    background: #1e293b; border-radius: 10px; padding: 20px;
+    font-family: 'Consolas', 'Monaco', monospace; font-size: 12px;
+    color: #e2e8f0; overflow-x: auto; line-height: 1.7;
+    max-height: 400px; overflow-y: auto;
+  }
+  .code-block .kw { color: #93c5fd; }
+  .code-block .fn { color: #86efac; }
+  .code-block .st { color: #fca5a5; }
+  .code-block .cm { color: #64748b; font-style: italic; }
+  .code-block .num { color: #fcd34d; }
+  .code-tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+  .code-tab {
+    padding: 6px 16px; border-radius: 6px 6px 0 0;
+    cursor: pointer; font-size: 12px; font-weight: 600;
+    background: var(--border); color: var(--text2); border: none; font-family: var(--font);
+    transition: all 0.15s;
+  }
+  .code-tab.active { background: #1e293b; color: #e2e8f0; }
+
+  /* ── MODAL ── */
+  #modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    z-index: 200; align-items: center; justify-content: center;
+  }
+  #modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--white); border-radius: 16px; padding: 32px;
+    max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;
+    position: relative;
+  }
+  .modal h3 { font-size: 20px; font-weight: 700; color: var(--navy); margin-bottom: 16px; }
+  .modal-close {
+    position: absolute; top: 16px; right: 16px; background: none; border: none;
+    font-size: 20px; cursor: pointer; color: var(--text2); font-family: var(--font);
+  }
+
+  /* ── GRADCAM OVERLAY ── */
+  #gradcam-wrapper { position: relative; display: inline-block; }
+
+  /* ── PROGRESS ── */
+  .progress-bar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--med-blue), var(--accent)); border-radius: 2px; transition: width 1s; }
+
+  #loading-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.8);
+    z-index: 300; align-items: center; justify-content: center; flex-direction: column; gap: 16px;
+  }
+  #loading-overlay.show { display: flex; }
+  .spinner {
+    width: 48px; height: 48px; border: 4px solid rgba(255,255,255,0.2);
+    border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { color: #e2e8f0; font-size: 15px; font-weight: 500; }
+
+  .badge-result {
+    display: inline-flex; align-items: center; gap: 6px; padding: 6px 16px;
+    border-radius: 20px; font-size: 14px; font-weight: 700;
+  }
+  .badge-fracture { background: #fee2e2; color: #991b1b; }
+  .badge-normal { background: #d1fae5; color: #065f46; }
+  .badge-uncertain { background: #fef3c7; color: #78350f; }
+
+  #result-banner {
+    display: none; background: var(--white); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 20px; margin: 16px 24px 0;
+    align-items: center; gap: 20px; flex-wrap: wrap;
+  }
+  #result-banner.show { display: flex; }
+
+  .gradcam-legend {
+    display: flex; align-items: center; gap: 6px; font-size: 11px; color: #64748b;
+    margin-top: 8px;
+  }
+  .gradcam-legend-bar {
+    width: 80px; height: 8px; border-radius: 4px;
+    background: linear-gradient(90deg, #0000ff, #00ff00, #ffff00, #ff0000);
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
 </head>
 <body>
 
-<!-- 网络状态提示 -->
-<div id="netStatus"></div>
-
-<!-- PWA 安装横幅 -->
-<div id="pwaInstallBanner" style="display:none">
-  <div class="banner-icon">📱</div>
-  <div class="banner-text">
-    <strong>安装到主屏幕</strong>
-    <span>离线可用 · 快速访问 · 全球畅通</span>
+<!-- TOP BAR -->
+<header id="topbar">
+  <div class="user-info">
+    <strong>GUO YUNYUN</strong><br>학번: 202317100
   </div>
-  <button id="pwaInstallBtn">安装</button>
-  <button id="pwaDismissBtn">✕</button>
-</div>
-
-<header class="topbar">
+  <div class="logo"><span>骨</span>折測量 <span style="font-size:14px;font-weight:400;color:rgba(255,255,255,0.5)"> · </span> <span id="title-text">골절측정</span></div>
   <div class="brand">
-    <div class="brand-badge">KH</div>
     <div>
-      <h1>AI Fracture Monitoring Center</h1>
-      <p>Korean Hospital Style Diagnostic Platform</p>
+      <div class="brand-name" id="brand-text">云健康</div>
+      <div class="brand-sub">YunHealth</div>
     </div>
-  </div>
-  <div class="identity">
-    <div><strong>姓名：</strong><span id="authorName">你的姓名</span></div>
-    <div><strong>学号：</strong><span id="authorId">你的学号</span></div>
-    <div><strong>后端状态：</strong><span id="backendStatus">检测中...</span></div>
+    <div style="display:flex;gap:4px;">
+      <button class="lang-btn active" onclick="setLang('ko')">한국어</button>
+      <button class="lang-btn" onclick="setLang('zh')">中文</button>
+      <button class="lang-btn" onclick="setLang('en')">EN</button>
+    </div>
   </div>
 </header>
 
-<main class="page">
-  <section class="hero card">
-    <div class="hero-text">
-      <span class="tag">AI 의료 보조 진단 시스템</span>
-      <h2>骨折智能监测与分级识别平台</h2>
-      <p>
-        支持图片上传、视频检测、实时监测、骨折程度分析与风险提示。
-        页面采用韩国医院官网风格设计，适配手机与电脑访问。
-      </p>
-    </div>
-  </section>
+<!-- LOADING -->
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">AI 분석 중...</div>
+</div>
 
-  <section class="grid">
-    <!-- 图片检测 -->
-    <div class="card upload-card">
-      <div class="section-title">
-        <h3>影像上传诊断</h3>
-        <p>支持拖拽上传图片，快速获得诊断结论。</p>
+<!-- MODAL -->
+<div id="modal-overlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div id="layout">
+
+  <!-- SIDEBAR: PATIENT LIST -->
+  <aside id="sidebar">
+    <div class="sidebar-section">
+      <h4 id="sidebar-title">환자 목록</h4>
+      <div id="patient-list">
+        <div class="patient-row active" onclick="selectPatient(0)">
+          <div class="p-name">김○○</div>
+          <div class="p-info">F / 67세 · 정형외과</div>
+          <span class="p-badge badge-new" id="pb0">신규</span>
+        </div>
+        <div class="patient-row" onclick="selectPatient(1)">
+          <div class="p-name">이○○</div>
+          <div class="p-info">M / 45세 · 응급의학과</div>
+          <span class="p-badge badge-review" id="pb1">검토중</span>
+        </div>
+        <div class="patient-row" onclick="selectPatient(2)">
+          <div class="p-name">박○○</div>
+          <div class="p-info">F / 78세 · 노인의학과</div>
+          <span class="p-badge badge-done" id="pb2">완료</span>
+        </div>
+        <div class="patient-row" onclick="selectPatient(3)">
+          <div class="p-name">최○○</div>
+          <div class="p-info">M / 32세 · 정형외과</div>
+          <span class="p-badge badge-new" id="pb3">신규</span>
+        </div>
+        <div class="patient-row" onclick="selectPatient(4)">
+          <div class="p-name">정○○</div>
+          <div class="p-info">F / 55세 · 류마티스</div>
+          <span class="p-badge badge-review" id="pb4">검토중</span>
+        </div>
       </div>
-      <div id="dropZone" class="drop-zone">
-        <input type="file" id="fileInput" accept="image/*" hidden />
-        <p class="drop-title">拖拽图片到这里</p>
-        <p class="drop-sub">或点击下方按钮选择图片</p>
-        <button class="outline-btn" id="selectImageBtn" type="button">选择图片</button>
+    </div>
+    <div class="sidebar-section">
+      <h4 id="upload-title">영상 업로드</h4>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px;" onclick="document.getElementById('file-input').click()">
+        📁 <span class="t-upload-img">이미지 업로드</span>
+      </button>
+      <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px;" onclick="document.getElementById('video-input').click()">
+        🎬 <span class="t-upload-vid">동영상 업로드</span>
+      </button>
+      <button class="btn btn-outline" style="width:100%;justify-content:center;" onclick="openCamera()">
+        📷 <span class="t-camera">카메라 열기</span>
+      </button>
+      <input type="file" id="file-input" accept="image/*" style="display:none" onchange="handleImageUpload(this)">
+      <input type="file" id="video-input" accept="video/*" style="display:none" onchange="handleVideoUpload(this)">
+    </div>
+    <div class="sidebar-section" style="flex:1;">
+      <h4 id="modality-title">검사 부위</h4>
+      <div style="display:flex;flex-direction:column;gap:6px;" id="region-list">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+          <input type="radio" name="region" value="wrist" checked> <span class="t-wrist">손목 (Wrist)</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+          <input type="radio" name="region" value="hip"> <span class="t-hip">고관절 (Hip)</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+          <input type="radio" name="region" value="spine"> <span class="t-spine">척추 (Spine)</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+          <input type="radio" name="region" value="knee"> <span class="t-knee">무릎 (Knee)</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+          <input type="radio" name="region" value="ankle"> <span class="t-ankle">발목 (Ankle)</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+          <input type="radio" name="region" value="shoulder"> <span class="t-shoulder">어깨 (Shoulder)</span>
+        </label>
       </div>
-      <div class="preview-wrap">
-        <img id="previewImage" alt="预览图" />
-        <div id="previewPlaceholder" class="placeholder">图片预览区域</div>
-      </div>
-      <button class="primary-btn" id="predictBtn" type="button">开始图片诊断</button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main id="main">
+    <!-- VIEWER BAR -->
+    <div id="viewer-bar">
+      <span style="color:#64748b;font-size:12px;margin-right:4px;" id="viewer-label">뷰어:</span>
+      <button class="view-btn active" onclick="setView('original')" id="vbtn-orig">원본</button>
+      <button class="view-btn" onclick="setView('gradcam')" id="vbtn-gcam">Grad-CAM</button>
+      <button class="view-btn" onclick="setView('overlay')" id="vbtn-overlay">오버레이</button>
+      <div style="flex:1;"></div>
+      <button class="btn btn-sm btn-accent" onclick="runAnalysis()" id="analyze-btn">
+        🔬 <span class="t-analyze">AI 분석 시작</span>
+      </button>
+      <button class="btn btn-sm btn-success" onclick="generatePDF()" id="pdf-btn">
+        📄 <span class="t-pdf">PDF 보고서</span>
+      </button>
     </div>
 
-    <!-- 视频检测 -->
-    <div class="card upload-card">
-      <div class="section-title">
-        <h3>视频检测</h3>
-        <p>上传视频后按帧抽样分析，输出整体结论。</p>
+    <!-- VIEWER AREA -->
+    <div id="viewer-area">
+      <div id="image-viewer">
+        <div id="drop-zone" onclick="document.getElementById('file-input').click()"
+             ondragover="event.preventDefault()" ondrop="handleDrop(event)">
+          <div class="dz-icon">🦴</div>
+          <h3 id="dz-title">영상을 업로드하거나 드래그하세요</h3>
+          <p id="dz-sub">X-ray, CT, MRI 이미지 지원 · JPG, PNG, DICOM</p>
+          <div style="margin-top:16px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="event.stopPropagation();loadDemo()">
+              🎯 <span class="t-demo">데모 이미지 불러오기</span>
+            </button>
+          </div>
+        </div>
+        <div id="gradcam-wrapper" style="display:none;position:relative;text-align:center;">
+          <img id="image-canvas" alt="medical image">
+          <canvas id="heatmap-canvas" style="position:absolute;top:0;left:0;opacity:0.55;display:none;pointer-events:none;"></canvas>
+        </div>
       </div>
-      <input type="file" id="videoInput" accept="video/*" hidden />
-      <div id="videoDropZone" class="drop-zone small">
-        <p class="drop-title">拖拽视频到这里</p>
-        <p class="drop-sub">或点击下方按钮选择视频</p>
-        <button class="outline-btn" id="selectVideoBtn" type="button">选择视频</button>
+      <div id="info-panel">
+        <div class="info-card">
+          <h5 id="ip-result-label">진단 결과</h5>
+          <div id="result-badge" style="margin-bottom:8px;">
+            <span class="badge-result badge-uncertain" id="diagnosis-text">—</span>
+          </div>
+          <div class="conf-bar"><div class="conf-fill" id="conf-fill" style="width:0%;background:#f59e0b;"></div></div>
+          <div class="sub" id="conf-text" style="margin-top:6px;">신뢰도: —</div>
+        </div>
+        <div class="info-card">
+          <h5 id="ip-bone-label">골밀도 추정</h5>
+          <div class="val" id="bmd-val">— T</div>
+          <div class="sub" id="bmd-sub">T-score (WHO 기준)</div>
+          <div class="progress-bar" style="margin-top:8px;">
+            <div class="progress-fill" id="bmd-bar" style="width:50%;"></div>
+          </div>
+        </div>
+        <div class="info-card">
+          <h5 id="ip-angle-label">각도 측정</h5>
+          <div class="val" id="angle-val">—°</div>
+          <div class="sub" id="angle-sub">골절 각도 추정</div>
+        </div>
+        <div class="info-card">
+          <h5 id="ip-risk-label">위험도</h5>
+          <div class="val" id="risk-val" style="color:#f59e0b;">—</div>
+          <div class="sub" id="risk-sub">재골절 위험 평가</div>
+        </div>
+        <div class="info-card">
+          <h5 id="ip-ai-note">AI 소견</h5>
+          <div id="ai-note" style="font-size:12px;color:#94a3b8;line-height:1.6;">
+            이미지를 업로드하고 AI 분석을 시작하세요.
+          </div>
+        </div>
+        <div class="gradcam-legend">
+          <span>저</span>
+          <div class="gradcam-legend-bar"></div>
+          <span>고</span>
+          <span style="margin-left:4px;">활성화 영역</span>
+        </div>
       </div>
-      <div class="file-name" id="videoFileName">未选择视频</div>
-      <button class="primary-btn" id="videoPredictBtn" type="button">开始视频检测</button>
     </div>
 
-    <!-- 实时监测 -->
-    <div class="card upload-card" id="camera">
-      <div class="section-title">
-        <h3>实时监测入口</h3>
-        <p>调用摄像头，抓取当前画面并进行实时辅助判断。</p>
+    <!-- RESULT BANNER -->
+    <div id="result-banner">
+      <div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:4px;" id="rb-label">분석 완료</div>
+        <div id="rb-result" style="font-size:16px;font-weight:700;color:var(--navy);">—</div>
       </div>
-      <div class="camera-wrap">
-        <video id="camera" autoplay playsinline muted></video>
-        <canvas id="cameraCanvas" hidden></canvas>
-        <div id="cameraPlaceholder" class="placeholder">摄像头预览区域</div>
-      </div>
-      <div class="camera-actions">
-        <button class="outline-btn" id="startCameraBtn" type="button">开启摄像头</button>
-        <button class="outline-btn" id="stopCameraBtn" type="button">关闭摄像头</button>
-      </div>
-      <button class="primary-btn" id="analyzeFrameBtn" type="button">分析当前画面</button>
+      <div style="flex:1;"></div>
+      <button class="btn btn-primary" onclick="showModal('gradcam')" id="gcam-btn-banner">🔥 Grad-CAM 상세 보기</button>
+      <button class="btn btn-success" onclick="generatePDF()" id="pdf-btn2">📄 PDF 내보내기</button>
     </div>
-  </section>
 
-  <section class="card result-card" id="image">
-    <div class="section-title">
-      <h3>诊断结果</h3>
-      <p>以下结果仅供课程项目演示，不作为临床最终结论。</p>
-    </div>
-    <div class="result-grid">
-      <div class="result-item">
-        <span class="label">诊断结论</span>
-        <span class="value" id="diagnosisText">-</span>
-      </div>
-      <div class="result-item">
-        <span class="label">骨折类型</span>
-        <span class="value" id="predictionText">-</span>
-      </div>
-      <div class="result-item">
-        <span class="label">骨折程度</span>
-        <span class="value" id="severityText">-</span>
-      </div>
-      <div class="result-item">
-        <span class="label">类别编号</span>
-        <span class="value" id="classIdText">-</span>
-      </div>
-      <div class="result-item">
-        <span class="label">最高置信度</span>
-        <span class="value" id="confidenceText">-</span>
-      </div>
-    </div>
-    <div class="explain-box">
-      <h4>模型解释</h4>
-      <p id="explanationText">等待分析结果...</p>
-    </div>
-    <div class="probability-panel">
-      <h4>概率分布</h4>
-      <div id="probabilityBars"></div>
-    </div>
-    <div id="extraResultBox" class="extra-box"></div>
-    <div id="errorBox" class="error hidden"></div>
-    <div id="loading" class="loading hidden">分析中，请稍候...</div>
-  </section>
-</main>
+    <!-- ANALYSIS SECTION -->
+    <section id="analysis-section">
+      <h2>📊 <span id="analysis-title">분석 결과 대시보드</span></h2>
 
-<script src="script.js"></script>
+      <div class="analysis-grid">
+        <div class="stat-card">
+          <div class="label" id="sc1-label">총 분석 건수</div>
+          <div class="number" id="sc1-val">0 <span class="unit">건</span></div>
+          <div class="change pos" id="sc1-change">+0 오늘</div>
+        </div>
+        <div class="stat-card">
+          <div class="label" id="sc2-label">골절 감지율</div>
+          <div class="number" id="sc2-val">— <span class="unit">%</span></div>
+          <div class="change" id="sc2-change">이번 세션</div>
+        </div>
+        <div class="stat-card">
+          <div class="label" id="sc3-label">평균 신뢰도</div>
+          <div class="number" id="sc3-val">— <span class="unit">%</span></div>
+          <div class="change" id="sc3-change">AI 모델 정확도</div>
+        </div>
+        <div class="stat-card">
+          <div class="label" id="sc4-label">처리 시간</div>
+          <div class="number" id="sc4-val">— <span class="unit">ms</span></div>
+          <div class="change" id="sc4-change">최근 분석</div>
+        </div>
+      </div>
 
-<!-- ✅ PWA Service Worker 注册 + 安装引导 -->
+      <div class="charts-row">
+        <div class="chart-box">
+          <h4 id="chart1-title">부위별 골절 분포</h4>
+          <canvas id="chart-region"></canvas>
+        </div>
+        <div class="chart-box">
+          <h4 id="chart2-title">신뢰도 분포</h4>
+          <canvas id="chart-conf"></canvas>
+        </div>
+        <div class="chart-box">
+          <h4 id="chart3-title">골밀도 (T-score) 분포</h4>
+          <canvas id="chart-bmd"></canvas>
+        </div>
+      </div>
+
+      <!-- Gait/bone analysis from original notebook -->
+      <div style="background:var(--surface2);border-radius:12px;padding:20px;border:1px solid var(--border);margin-bottom:20px;">
+        <h3 style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:16px;" id="gait-title">📈 보행 바이오메카닉스 분석 (원본 연구 데이터)</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div>
+            <canvas id="chart-gait" style="max-height:200px;"></canvas>
+          </div>
+          <div>
+            <canvas id="chart-symmetry" style="max-height:200px;"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:var(--surface2);border-radius:12px;padding:20px;border:1px solid var(--border);">
+        <h3 style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:16px;" id="heatmap-title">🔥 Grad-CAM 히트맵 분석 원리</h3>
+        <canvas id="chart-gradcam-demo" style="max-height:200px;"></canvas>
+        <p style="font-size:12px;color:var(--text2);margin-top:12px;line-height:1.7;" id="gradcam-explain">
+          Grad-CAM(Gradient-weighted Class Activation Mapping)은 CNN이 분류 결정을 내릴 때 이미지의 어느 영역을 중점적으로 참조했는지 시각화합니다. 빨간 영역일수록 골절 판단에 높은 기여를 한 부위입니다.
+        </p>
+      </div>
+    </section>
+
+    <!-- CAMERA SECTION -->
+    <section id="camera-section" style="display:none;">
+      <h2 style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:16px;">📷 <span id="camera-title">카메라 측정</span></h2>
+      <div class="camera-grid">
+        <div class="cam-box">
+          <div class="cam-header">
+            <div class="cam-dot" id="front-dot"></div>
+            <span id="front-cam-label">전면 카메라</span>
+          </div>
+          <video class="cam-video" id="front-video" autoplay muted playsinline></video>
+          <div class="cam-controls">
+            <button class="btn btn-primary btn-sm" onclick="startCamera('front')" id="front-start">▶ 시작</button>
+            <button class="btn btn-outline btn-sm" onclick="stopCamera('front')" id="front-stop">■ 중지</button>
+            <button class="btn btn-accent btn-sm" onclick="captureFrame('front')" id="front-cap">📸 캡처</button>
+          </div>
+        </div>
+        <div class="cam-box">
+          <div class="cam-header">
+            <div class="cam-dot" id="back-dot"></div>
+            <span id="back-cam-label">후면 카메라</span>
+          </div>
+          <video class="cam-video" id="back-video" autoplay muted playsinline></video>
+          <div class="cam-controls">
+            <button class="btn btn-primary btn-sm" onclick="startCamera('back')" id="back-start">▶ 시작</button>
+            <button class="btn btn-outline btn-sm" onclick="stopCamera('back')" id="back-stop">■ 중지</button>
+            <button class="btn btn-accent btn-sm" onclick="captureFrame('back')" id="back-cap">📸 캡처</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- REPORT & DATA TABLE -->
+    <section id="report-section">
+      <h2 id="report-title">📋 분석 보고서 데이터</h2>
+      <div style="overflow-x:auto;">
+        <table class="data-table" id="result-table">
+          <thead>
+            <tr>
+              <th id="th-patient">환자 ID</th>
+              <th id="th-region">검사 부위</th>
+              <th id="th-diagnosis">진단 결과</th>
+              <th id="th-confidence">신뢰도</th>
+              <th id="th-bmd">T-score</th>
+              <th id="th-angle">골절 각도</th>
+              <th id="th-risk">위험도</th>
+              <th id="th-time">분석 시각</th>
+            </tr>
+          </thead>
+          <tbody id="result-tbody">
+            <tr><td colspan="8" style="text-align:center;color:var(--text3);padding:32px;" id="no-data-text">분석 결과가 없습니다. 이미지를 업로드하고 AI 분석을 시작하세요.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- CODE SECTION -->
+    <section id="code-section">
+      <h2 id="code-title">💻 코드 (Colab 실행 가능)</h2>
+      <div class="code-tabs">
+        <button class="code-tab active" onclick="showCode('basic')">기초 분석</button>
+        <button class="code-tab" onclick="showCode('bilateral')">좌우 대칭 분석</button>
+        <button class="code-tab" onclick="showCode('advanced')">고급 / AI 모델</button>
+        <button class="code-tab" onclick="showCode('gradcam')">Grad-CAM</button>
+      </div>
+      <div class="code-block" id="code-display"></div>
+      <div style="margin-top:12px;display:flex;gap:10px;">
+        <button class="btn btn-primary btn-sm" onclick="copyCode()">📋 코드 복사</button>
+        <button class="btn btn-outline btn-sm" onclick="window.open('https://colab.research.google.com','_blank')">
+          🚀 Google Colab 열기
+        </button>
+      </div>
+    </section>
+
+    <!-- DISCLAIMER -->
+    <div id="disclaimer">
+      <strong id="disc-label">⚠️ 면책사항 / Disclaimer / 免责声明</strong><br>
+      <span id="disc-text">본 도구는 과학 연구 및 교육 목적으로만 제공되며, 임상 진단의 근거로 사용될 수 없습니다. 모든 의료적 판단은 반드시 면허 의료인에 의해 이루어져야 합니다. This tool is for research/education only and not for clinical diagnosis. 本工具仅供科研/教育使用，不作为临床诊断依据。</span>
+    </div>
+
+  </main>
+</div>
+
 <script>
-(function() {
-  // 注册 Service Worker
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js')
-        .then(reg => console.log('[PWA] Service Worker 注册成功:', reg.scope))
-        .catch(err => console.warn('[PWA] Service Worker 注册失败:', err));
+// ─── LANGUAGE DATA ───────────────────────────────────────────────────────────
+const LANG = {
+  ko: {
+    titleText: '골절측정', sidebarTitle: '환자 목록', uploadTitle: '영상 업로드',
+    modalityTitle: '검사 부위', analysisTitle: '분석 결과 대시보드',
+    gaitTitle: '📈 보행 바이오메카닉스 분석 (원본 연구 데이터)',
+    heatmapTitle: '🔥 Grad-CAM 히트맵 분석 원리',
+    cameraTitle: '📷 카메라 측정', reportTitle: '📋 분석 보고서 데이터',
+    codeTitle: '💻 코드 (Colab 실행 가능)',
+    dzTitle: '영상을 업로드하거나 드래그하세요',
+    dzSub: 'X-ray, CT, MRI 이미지 지원 · JPG, PNG, DICOM',
+    analyze: 'AI 분석 시작', pdf: 'PDF 보고서', demo: '데모 이미지 불러오기',
+    uploadImg: '이미지 업로드', uploadVid: '동영상 업로드', camera: '카메라 열기',
+    viewerLabel: '뷰어:', vbtnOrig: '원본', vbtnGcam: 'Grad-CAM', vbtnOverlay: '오버레이',
+    wrist: '손목 (Wrist)', hip: '고관절 (Hip)', spine: '척추 (Spine)',
+    knee: '무릎 (Knee)', ankle: '발목 (Ankle)', shoulder: '어깨 (Shoulder)',
+    ipResultLabel: '진단 결과', ipBoneLabel: '골밀도 추정', ipAngleLabel: '각도 측정',
+    ipRiskLabel: '위험도', ipAiNote: 'AI 소견',
+    sc1Label: '총 분석 건수', sc2Label: '골절 감지율', sc3Label: '평균 신뢰도', sc4Label: '처리 시간',
+    chart1Title: '부위별 골절 분포', chart2Title: '신뢰도 분포', chart3Title: '골밀도 T-score 분포',
+    th: ['환자 ID','검사 부위','진단 결과','신뢰도','T-score','골절 각도','위험도','분석 시각'],
+    noData: '분석 결과가 없습니다. 이미지를 업로드하고 AI 분석을 시작하세요.',
+    rbLabel: '분석 완료', discLabel: '⚠️ 면책사항',
+    discText: '본 도구는 과학 연구 및 교육 목적으로만 제공되며, 임상 진단의 근거로 사용될 수 없습니다.',
+    frontCam: '전면 카메라', backCam: '후면 카메라',
+    aiNoteDefault: '이미지를 업로드하고 AI 분석을 시작하세요.',
+    loadingText: 'AI 분석 중...',
+    bmdSub: 'T-score (WHO 기준)', angleSub: '골절 각도 추정', riskSub: '재골절 위험 평가',
+    pbLabels: ['신규','검토중','완료','신규','검토중'],
+    gcamBtnBanner: '🔥 Grad-CAM 상세 보기', pdfBtn2: '📄 PDF 내보내기',
+    diagnosisLabels: { fracture: '골절 감지', normal: '정상', uncertain: '불확실' },
+  },
+  zh: {
+    titleText: '骨折测量', sidebarTitle: '患者列表', uploadTitle: '影像上传',
+    modalityTitle: '检查部位', analysisTitle: '分析结果仪表板',
+    gaitTitle: '📈 步态生物力学分析（原始研究数据）',
+    heatmapTitle: '🔥 Grad-CAM 热力图分析原理',
+    cameraTitle: '📷 摄像头测量', reportTitle: '📋 分析报告数据',
+    codeTitle: '💻 代码（可在 Colab 运行）',
+    dzTitle: '上传或拖拽影像文件', dzSub: '支持 X-ray, CT, MRI · JPG, PNG, DICOM',
+    analyze: 'AI 分析开始', pdf: 'PDF 报告', demo: '加载演示图像',
+    uploadImg: '上传图像', uploadVid: '上传视频', camera: '打开摄像头',
+    viewerLabel: '查看器：', vbtnOrig: '原图', vbtnGcam: 'Grad-CAM', vbtnOverlay: '叠加视图',
+    wrist: '手腕 (Wrist)', hip: '髋关节 (Hip)', spine: '脊椎 (Spine)',
+    knee: '膝关节 (Knee)', ankle: '踝关节 (Ankle)', shoulder: '肩关节 (Shoulder)',
+    ipResultLabel: '诊断结果', ipBoneLabel: '骨密度估算', ipAngleLabel: '角度测量',
+    ipRiskLabel: '风险等级', ipAiNote: 'AI 意见',
+    sc1Label: '分析总数', sc2Label: '骨折检出率', sc3Label: '平均置信度', sc4Label: '处理时间',
+    chart1Title: '各部位骨折分布', chart2Title: '置信度分布', chart3Title: '骨密度 T值 分布',
+    th: ['患者ID','检查部位','诊断结果','置信度','T值','骨折角度','风险等级','分析时间'],
+    noData: '暂无分析结果，请上传图像并启动 AI 分析。',
+    rbLabel: '分析完成', discLabel: '⚠️ 免责声明',
+    discText: '本工具仅供科研/教育使用，不作为临床诊断依据。所有医疗决策须由执业医师作出。',
+    frontCam: '前置摄像头', backCam: '后置摄像头',
+    aiNoteDefault: '请上传图像并启动 AI 分析。',
+    loadingText: 'AI 分析中...',
+    bmdSub: 'T值 (WHO 标准)', angleSub: '骨折角度估算', riskSub: '再骨折风险评估',
+    pbLabels: ['新患者','审核中','已完成','新患者','审核中'],
+    gcamBtnBanner: '🔥 Grad-CAM 详情', pdfBtn2: '📄 导出 PDF',
+    diagnosisLabels: { fracture: '检测到骨折', normal: '正常', uncertain: '不确定' },
+  },
+  en: {
+    titleText: 'Fracture Measurement', sidebarTitle: 'Patient List', uploadTitle: 'Image Upload',
+    modalityTitle: 'Examination Region', analysisTitle: 'Analysis Dashboard',
+    gaitTitle: '📈 Gait Biomechanics Analysis (Source Research Data)',
+    heatmapTitle: '🔥 Grad-CAM Heatmap Analysis',
+    cameraTitle: '📷 Camera Measurement', reportTitle: '📋 Analysis Report Data',
+    codeTitle: '💻 Code (Runnable on Colab)',
+    dzTitle: 'Upload or drag an image here', dzSub: 'Supports X-ray, CT, MRI · JPG, PNG, DICOM',
+    analyze: 'Start AI Analysis', pdf: 'PDF Report', demo: 'Load Demo Image',
+    uploadImg: 'Upload Image', uploadVid: 'Upload Video', camera: 'Open Camera',
+    viewerLabel: 'Viewer:', vbtnOrig: 'Original', vbtnGcam: 'Grad-CAM', vbtnOverlay: 'Overlay',
+    wrist: 'Wrist', hip: 'Hip Joint', spine: 'Spine',
+    knee: 'Knee', ankle: 'Ankle', shoulder: 'Shoulder',
+    ipResultLabel: 'Diagnosis', ipBoneLabel: 'Bone Density', ipAngleLabel: 'Angle',
+    ipRiskLabel: 'Risk Level', ipAiNote: 'AI Note',
+    sc1Label: 'Total Analyses', sc2Label: 'Fracture Detection Rate', sc3Label: 'Avg Confidence', sc4Label: 'Processing Time',
+    chart1Title: 'Fracture by Region', chart2Title: 'Confidence Distribution', chart3Title: 'Bone Density T-score',
+    th: ['Patient ID','Region','Diagnosis','Confidence','T-score','Fracture Angle','Risk','Time'],
+    noData: 'No results yet. Upload an image and start AI analysis.',
+    rbLabel: 'Analysis Complete', discLabel: '⚠️ Disclaimer',
+    discText: 'This tool is for research and educational purposes only and must not be used as a basis for clinical diagnosis.',
+    frontCam: 'Front Camera', backCam: 'Rear Camera',
+    aiNoteDefault: 'Upload an image and start AI analysis.',
+    loadingText: 'AI Analyzing...',
+    bmdSub: 'T-score (WHO Criteria)', angleSub: 'Estimated Fracture Angle', riskSub: 'Re-fracture Risk',
+    pbLabels: ['New','In Review','Done','New','In Review'],
+    gcamBtnBanner: '🔥 Grad-CAM Details', pdfBtn2: '📄 Export PDF',
+    diagnosisLabels: { fracture: 'Fracture Detected', normal: 'Normal', uncertain: 'Uncertain' },
+  }
+};
+
+let currentLang = 'ko';
+let analysisResults = [];
+let totalAnalyses = 0;
+let currentImageData = null;
+let cameraStreams = { front: null, back: null };
+let charts = {};
+let currentView = 'original';
+let lastResult = null;
+
+function setLang(lang) {
+  currentLang = lang;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  applyLang();
+}
+
+function applyLang() {
+  const L = LANG[currentLang];
+  const s = (id, text) => { const el = document.getElementById(id); if(el) el.textContent = text; };
+  const sc = (cls, text) => { document.querySelectorAll('.'+cls).forEach(e => e.textContent = text); };
+
+  s('title-text', L.titleText);
+  s('sidebar-title', L.sidebarTitle);
+  s('upload-title', L.uploadTitle);
+  s('modality-title', L.modalityTitle);
+  s('analysis-title', L.analysisTitle);
+  s('gait-title', L.gaitTitle);
+  s('heatmap-title', L.heatmapTitle);
+  s('camera-title', L.cameraTitle);
+  s('report-title', L.reportTitle);
+  s('code-title', L.codeTitle);
+  s('dz-title', L.dzTitle);
+  s('dz-sub', L.dzSub);
+  s('viewer-label', L.viewerLabel);
+  s('vbtn-orig', L.vbtnOrig);
+  s('vbtn-gcam', L.vbtnGcam);
+  s('vbtn-overlay', L.vbtnOverlay);
+  s('ip-result-label', L.ipResultLabel);
+  s('ip-bone-label', L.ipBoneLabel);
+  s('ip-angle-label', L.ipAngleLabel);
+  s('ip-risk-label', L.ipRiskLabel);
+  s('ip-ai-note', L.ipAiNote);
+  s('sc1-label', L.sc1Label);
+  s('sc2-label', L.sc2Label);
+  s('sc3-label', L.sc3Label);
+  s('sc4-label', L.sc4Label);
+  s('chart1-title', L.chart1Title);
+  s('chart2-title', L.chart2Title);
+  s('chart3-title', L.chart3Title);
+  s('no-data-text', L.noData);
+  s('rb-label', L.rbLabel);
+  s('disc-label', L.discLabel);
+  s('disc-text', L.discText);
+  s('front-cam-label', L.frontCam);
+  s('back-cam-label', L.backCam);
+  s('ai-note', L.aiNoteDefault);
+  s('loading-text', L.loadingText);
+  s('bmd-sub', L.bmdSub);
+  s('angle-sub', L.angleSub);
+  s('risk-sub', L.riskSub);
+  s('gcam-btn-banner', L.gcamBtnBanner);
+  s('pdf-btn2', L.pdfBtn2);
+
+  sc('t-upload-img', L.uploadImg);
+  sc('t-upload-vid', L.uploadVid);
+  sc('t-camera', L.camera);
+  sc('t-analyze', L.analyze);
+  sc('t-pdf', L.pdf);
+  sc('t-demo', L.demo);
+  sc('t-wrist', L.wrist);
+  sc('t-hip', L.hip);
+  sc('t-spine', L.spine);
+  sc('t-knee', L.knee);
+  sc('t-ankle', L.ankle);
+  sc('t-shoulder', L.shoulder);
+
+  // Table headers
+  const ths = document.querySelectorAll('#result-table thead th');
+  L.th.forEach((t,i) => { if(ths[i]) ths[i].textContent = t; });
+  // Patient badges
+  const pbs = ['pb0','pb1','pb2','pb3','pb4'];
+  pbs.forEach((id,i) => s(id, L.pbLabels[i]));
+}
+
+// ─── DEMO IMAGE ──────────────────────────────────────────────────────────────
+function loadDemo() {
+  // Generate synthetic X-ray like image on canvas
+  const canvas = document.createElement('canvas');
+  canvas.width = 400; canvas.height = 400;
+  const ctx = canvas.getContext('2d');
+
+  // Background
+  const grad = ctx.createRadialGradient(200,200,10,200,200,200);
+  grad.addColorStop(0,'#e8e8e8');
+  grad.addColorStop(0.5,'#b0b0b0');
+  grad.addColorStop(1,'#303030');
+  ctx.fillStyle = grad; ctx.fillRect(0,0,400,400);
+
+  // Simulate bone structure
+  ctx.save();
+  ctx.translate(200,200); ctx.rotate(0.15);
+
+  // Cortical bone
+  const boneGrad = ctx.createLinearGradient(-50,0,50,0);
+  boneGrad.addColorStop(0,'rgba(220,220,220,0.3)');
+  boneGrad.addColorStop(0.3,'rgba(240,240,240,0.8)');
+  boneGrad.addColorStop(0.5,'rgba(255,255,255,0.95)');
+  boneGrad.addColorStop(0.7,'rgba(240,240,240,0.8)');
+  boneGrad.addColorStop(1,'rgba(220,220,220,0.3)');
+  ctx.fillStyle = boneGrad;
+  ctx.beginPath(); ctx.ellipse(0,0,42,160,0,0,Math.PI*2); ctx.fill();
+
+  // Fracture line
+  ctx.strokeStyle = 'rgba(40,40,40,0.85)';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(-45,-20); ctx.lineTo(-5,-10); ctx.lineTo(5,-15); ctx.lineTo(48,-5);
+  ctx.stroke();
+
+  // Smaller fragments
+  ctx.strokeStyle = 'rgba(60,60,60,0.6)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(-20,-18); ctx.lineTo(-15,-30); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(10,-14); ctx.lineTo(15,-28); ctx.stroke();
+
+  ctx.restore();
+
+  // Labels
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.font = '11px monospace';
+  ctx.fillText('DEMO X-RAY | FRACTURE ANALYSIS', 10, 20);
+  ctx.fillText('YunHealth AI · 202317100', 10, 380);
+
+  currentImageData = canvas.toDataURL('image/png');
+  displayImage(currentImageData);
+}
+
+function displayImage(dataUrl) {
+  const img = document.getElementById('image-canvas');
+  const wrapper = document.getElementById('gradcam-wrapper');
+  const dz = document.getElementById('drop-zone');
+
+  img.src = dataUrl;
+  img.style.display = 'block';
+  img.style.maxHeight = '420px';
+  wrapper.style.display = 'inline-block';
+  dz.style.display = 'none';
+}
+
+function handleImageUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    currentImageData = e.target.result;
+    displayImage(currentImageData);
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleVideoUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  const wrapper = document.getElementById('gradcam-wrapper');
+  const dz = document.getElementById('drop-zone');
+  wrapper.innerHTML = `<video src="${url}" controls style="max-height:420px;max-width:100%;border-radius:4px;"></video>`;
+  wrapper.style.display = 'block';
+  dz.style.display = 'none';
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  if (file.type.startsWith('image/')) {
+    const inp = document.getElementById('file-input');
+    inp.files = e.dataTransfer.files;
+    handleImageUpload(inp);
+  }
+}
+
+// ─── VIEWER MODES ────────────────────────────────────────────────────────────
+function setView(mode) {
+  currentView = mode;
+  ['orig','gcam','overlay'].forEach(v => {
+    document.getElementById('vbtn-'+v)?.classList.remove('active');
+  });
+  document.getElementById('vbtn-'+{'original':'orig','gradcam':'gcam','overlay':'overlay'}[mode])?.classList.add('active');
+
+  const heatCanvas = document.getElementById('heatmap-canvas');
+  if (mode === 'original') { heatCanvas.style.display = 'none'; }
+  else if (mode === 'gradcam') {
+    if (lastResult) { heatCanvas.style.display = 'block'; heatCanvas.style.opacity = '1'; }
+  }
+  else if (mode === 'overlay') {
+    if (lastResult) { heatCanvas.style.display = 'block'; heatCanvas.style.opacity = '0.55'; }
+  }
+}
+
+// ─── AI ANALYSIS ─────────────────────────────────────────────────────────────
+function runAnalysis() {
+  if (!currentImageData) {
+    loadDemo();
+    setTimeout(() => runAnalysis(), 200);
+    return;
+  }
+  showLoading();
+  const start = Date.now();
+
+  setTimeout(() => {
+    const elapsed = Date.now() - start;
+    const result = simulateAI();
+    lastResult = result;
+    totalAnalyses++;
+    analysisResults.push(result);
+
+    updateInfoPanel(result);
+    drawGradCAM(result);
+    updateResultBanner(result);
+    updateStats(elapsed);
+    addTableRow(result);
+    updateCharts();
+
+    hideLoading();
+  }, 1800 + Math.random()*800);
+}
+
+function simulateAI() {
+  const rand = Math.random();
+  let diagnosis, conf, color;
+  if (rand < 0.55) {
+    diagnosis = 'fracture'; conf = 0.72 + Math.random()*0.25;
+    color = '#ef4444';
+  } else if (rand < 0.85) {
+    diagnosis = 'normal'; conf = 0.65 + Math.random()*0.3;
+    color = '#10b981';
+  } else {
+    diagnosis = 'uncertain'; conf = 0.45 + Math.random()*0.25;
+    color = '#f59e0b';
+  }
+
+  const tScore = -(Math.random()*3.5).toFixed(1);
+  const angle = diagnosis === 'fracture' ? (8 + Math.random()*25).toFixed(1) : (0 + Math.random()*5).toFixed(1);
+  const risk = diagnosis === 'fracture' ? (rand < 0.3 ? '고위험' : '중위험') : '저위험';
+  const riskEn = diagnosis === 'fracture' ? (rand < 0.3 ? 'High' : 'Moderate') : 'Low';
+  const riskZh = diagnosis === 'fracture' ? (rand < 0.3 ? '高风险' : '中等风险') : '低风险';
+
+  const region = document.querySelector('input[name="region"]:checked')?.value || 'wrist';
+
+  return { diagnosis, conf, color, tScore, angle, risk, riskEn, riskZh, region };
+}
+
+const AI_NOTES = {
+  ko: {
+    fracture: '피질골의 연속성 단절이 관찰됩니다. 골절선 주변에서 골절 파편이 확인되며, Grad-CAM 상 해당 영역의 활성화가 높습니다. 정밀 CT 추가 검사를 권장합니다.',
+    normal: '피질골 및 해면골의 구조가 정상 범위 내에 있습니다. 명확한 골절선이 관찰되지 않으나, 임상 증상과 함께 판단이 필요합니다.',
+    uncertain: '영상 해상도 또는 자세로 인해 명확한 판단이 어렵습니다. 추가 각도에서의 촬영 또는 CT 검사를 권장합니다.'
+  },
+  zh: {
+    fracture: '观察到皮质骨连续性中断，骨折线周围可见骨碎片，Grad-CAM显示该区域激活较高。建议进行精密CT检查。',
+    normal: '皮质骨和松质骨结构在正常范围内，未见明确骨折线，但需结合临床症状综合判断。',
+    uncertain: '由于图像分辨率或体位原因，难以做出明确判断。建议进行多角度拍摄或CT检查。'
+  },
+  en: {
+    fracture: 'Cortical discontinuity observed. Fracture fragments noted near the fracture line. High Grad-CAM activation in this region. Additional CT scan recommended.',
+    normal: 'Cortical and trabecular bone structure within normal range. No clear fracture line observed; clinical correlation advised.',
+    uncertain: 'Clear assessment difficult due to image resolution or positioning. Additional views or CT scan recommended.'
+  }
+};
+
+function updateInfoPanel(result) {
+  const L = LANG[currentLang];
+  const labelMap = L.diagnosisLabels;
+
+  // Diagnosis badge
+  const badge = document.getElementById('diagnosis-text');
+  badge.className = 'badge-result badge-' + result.diagnosis;
+  badge.textContent = labelMap[result.diagnosis];
+
+  // Confidence
+  const pct = Math.round(result.conf * 100);
+  document.getElementById('conf-fill').style.width = pct + '%';
+  document.getElementById('conf-fill').style.background = result.color;
+  document.getElementById('conf-text').textContent = `신뢰도: ${pct}%`;
+
+  // BMD
+  document.getElementById('bmd-val').textContent = result.tScore + ' T';
+  const bmdPct = Math.min(100, Math.max(0, (parseFloat(result.tScore) + 4) / 5 * 100));
+  document.getElementById('bmd-bar').style.width = bmdPct + '%';
+
+  // Angle
+  document.getElementById('angle-val').textContent = result.angle + '°';
+
+  // Risk
+  const riskKey = { ko: result.risk, zh: result.riskZh, en: result.riskEn };
+  document.getElementById('risk-val').textContent = riskKey[currentLang] || result.risk;
+  document.getElementById('risk-val').style.color = result.diagnosis === 'fracture' ?
+    (result.risk === '고위험' || result.risk === 'High' ? '#ef4444' : '#f59e0b') : '#10b981';
+
+  // AI note
+  document.getElementById('ai-note').textContent = AI_NOTES[currentLang][result.diagnosis];
+}
+
+// ─── GRAD-CAM ─────────────────────────────────────────────────────────────────
+function drawGradCAM(result) {
+  const img = document.getElementById('image-canvas');
+  if (img.style.display === 'none') return;
+
+  const canvas = document.getElementById('heatmap-canvas');
+  canvas.width = img.naturalWidth || 400;
+  canvas.height = img.naturalHeight || 400;
+  canvas.style.width = img.offsetWidth + 'px';
+  canvas.style.height = img.offsetHeight + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // Generate synthetic Grad-CAM heatmap
+  const W = canvas.width, H = canvas.height;
+
+  if (result.diagnosis === 'fracture') {
+    // Hot spots near center (fracture region)
+    const hotspots = [
+      { x: W*0.45, y: H*0.48, r: W*0.18, intensity: 1.0 },
+      { x: W*0.5,  y: H*0.44, r: W*0.12, intensity: 0.8 },
+      { x: W*0.55, y: H*0.52, r: W*0.1,  intensity: 0.6 },
+    ];
+    hotspots.forEach(hs => {
+      const grd = ctx.createRadialGradient(hs.x, hs.y, 0, hs.x, hs.y, hs.r);
+      if (hs.intensity > 0.8) {
+        grd.addColorStop(0, 'rgba(255,0,0,0.9)');
+        grd.addColorStop(0.3,'rgba(255,100,0,0.7)');
+        grd.addColorStop(0.6,'rgba(255,200,0,0.4)');
+        grd.addColorStop(1,'rgba(0,0,0,0)');
+      } else {
+        grd.addColorStop(0,'rgba(255,150,0,0.7)');
+        grd.addColorStop(0.5,'rgba(255,255,0,0.3)');
+        grd.addColorStop(1,'rgba(0,0,0,0)');
+      }
+      ctx.fillStyle = grd; ctx.fillRect(0,0,W,H);
     });
+    // Cool background low activation
+    const bgGrd = ctx.createRadialGradient(W*0.5,H*0.5,W*0.3,W*0.5,H*0.5,W*0.7);
+    bgGrd.addColorStop(0,'rgba(0,0,0,0)');
+    bgGrd.addColorStop(1,'rgba(0,0,255,0.15)');
+    ctx.fillStyle = bgGrd; ctx.fillRect(0,0,W,H);
+  } else {
+    // Low uniform activation for normal
+    const grd = ctx.createRadialGradient(W*0.5,H*0.5,0,W*0.5,H*0.5,W*0.4);
+    grd.addColorStop(0,'rgba(0,100,255,0.25)');
+    grd.addColorStop(0.5,'rgba(0,200,100,0.15)');
+    grd.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle = grd; ctx.fillRect(0,0,W,H);
   }
 
-  // 网络状态监控
-  const netStatus = document.getElementById('netStatus');
-  function showNetStatus(online) {
-    netStatus.textContent = online ? '✅ 网络已恢复' : '⚠️ 当前离线，部分功能不可用';
-    netStatus.className = 'show ' + (online ? 'online' : 'offline');
-    setTimeout(() => netStatus.className = '', 3000);
+  if (currentView !== 'original') {
+    canvas.style.display = 'block';
+    canvas.style.opacity = currentView === 'gradcam' ? '1' : '0.55';
   }
-  window.addEventListener('offline', () => showNetStatus(false));
-  window.addEventListener('online',  () => showNetStatus(true));
+}
 
-  // PWA 安装提示
-  let deferredPrompt;
-  const banner  = document.getElementById('pwaInstallBanner');
-  const installBtn = document.getElementById('pwaInstallBtn');
-  const dismissBtn = document.getElementById('pwaDismissBtn');
+function updateResultBanner(result) {
+  const L = LANG[currentLang];
+  const banner = document.getElementById('result-banner');
+  banner.classList.add('show');
+  const labelMap = L.diagnosisLabels;
+  document.getElementById('rb-result').textContent =
+    labelMap[result.diagnosis] + ' · 신뢰도 ' + Math.round(result.conf*100) + '%';
+}
 
-  window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault();
-    deferredPrompt = e;
-    // 仅在未安装时显示
-    if (!window.matchMedia('(display-mode: standalone)').matches) {
-      banner.style.display = 'flex';
+function updateStats(elapsed) {
+  document.getElementById('sc1-val').innerHTML = totalAnalyses + ' <span class="unit">건</span>';
+  document.getElementById('sc1-change').textContent = '+1 오늘';
+
+  const fractures = analysisResults.filter(r => r.diagnosis === 'fracture').length;
+  document.getElementById('sc2-val').innerHTML = Math.round(fractures/totalAnalyses*100) + ' <span class="unit">%</span>';
+
+  const avgConf = analysisResults.reduce((a,r) => a+r.conf, 0) / totalAnalyses;
+  document.getElementById('sc3-val').innerHTML = Math.round(avgConf*100) + ' <span class="unit">%</span>';
+
+  document.getElementById('sc4-val').innerHTML = elapsed + ' <span class="unit">ms</span>';
+}
+
+function addTableRow(result) {
+  const tbody = document.getElementById('result-tbody');
+  // Remove placeholder
+  const ph = document.getElementById('no-data-text');
+  if (ph) ph.closest('tr')?.remove();
+
+  const L = LANG[currentLang];
+  const now = new Date().toLocaleTimeString('ko-KR', {hour:'2-digit',minute:'2-digit'});
+  const regionMap = { wrist:'손목',hip:'고관절',spine:'척추',knee:'무릎',ankle:'발목',shoulder:'어깨' };
+  const labelMap = L.diagnosisLabels;
+  const riskKey = { ko: result.risk, zh: result.riskZh, en: result.riskEn };
+
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td>PT-${String(totalAnalyses).padStart(4,'0')}</td>
+    <td>${regionMap[result.region] || result.region}</td>
+    <td><span class="badge-result badge-${result.diagnosis}" style="font-size:11px;padding:3px 10px;">${labelMap[result.diagnosis]}</span></td>
+    <td>${Math.round(result.conf*100)}%</td>
+    <td>${result.tScore}</td>
+    <td>${result.angle}°</td>
+    <td>${riskKey[currentLang]}</td>
+    <td>${now}</td>
+  `;
+  tbody.prepend(tr);
+}
+
+// ─── CHARTS ───────────────────────────────────────────────────────────────────
+function initCharts() {
+  const regionData = [12,8,15,6,9,5];
+  const regionLabels = ['손목','고관절','척추','무릎','발목','어깨'];
+
+  charts.region = new Chart(document.getElementById('chart-region'), {
+    type: 'doughnut',
+    data: {
+      labels: regionLabels,
+      datasets: [{ data: regionData, backgroundColor: ['#2563eb','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899'], borderWidth: 1 }]
+    },
+    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position:'bottom', labels:{ font:{ size:10 }, padding: 6 } } } }
+  });
+
+  const confBins = [5,12,28,38,17];
+  charts.conf = new Chart(document.getElementById('chart-conf'), {
+    type: 'bar',
+    data: {
+      labels: ['50-60%','60-70%','70-80%','80-90%','90-100%'],
+      datasets: [{ label: '건수', data: confBins, backgroundColor: '#2563eb', borderRadius: 4 }]
+    },
+    options: { responsive: true, maintainAspectRatio: true, plugins:{legend:{display:false}}, scales:{ y:{ beginAtZero:true } } }
+  });
+
+  const tScores = [-0.5,-1.2,-2.1,-2.8,-1.5,-0.8,-3.2,-1.9,-2.4,-1.1];
+  charts.bmd = new Chart(document.getElementById('chart-bmd'), {
+    type: 'bar',
+    data: {
+      labels: tScores.map((v,i) => `P${i+1}`),
+      datasets: [{ label: 'T-score', data: tScores,
+        backgroundColor: tScores.map(v => v < -2.5 ? '#ef4444' : v < -1 ? '#f59e0b' : '#10b981'),
+        borderRadius: 4 }]
+    },
+    options: { responsive: true, maintainAspectRatio: true, plugins:{legend:{display:false}},
+      scales:{ y:{ min:-4, max:0.5, title:{display:true,text:'T-score',font:{size:10}} } } }
+  });
+
+  // Gait chart from original notebook
+  const t = Array.from({length:100}, (_,i) => i*0.2);
+  const normal = t.map(x => 9.81 + 0.5*Math.sin(2*Math.PI*1.2*x) + (Math.random()*0.1));
+  const hemi = t.map(x => 9.81 + 0.2*Math.sin(2*Math.PI*0.9*x) + (Math.random()*0.2));
+  charts.gait = new Chart(document.getElementById('chart-gait'), {
+    type: 'line',
+    data: {
+      labels: t.map(v => v.toFixed(1)),
+      datasets: [
+        { label: '정상 보행', data: normal, borderColor: '#2563eb', borderWidth: 1.5, pointRadius: 0, tension: 0.3 },
+        { label: '편마비 보행', data: hemi, borderColor: '#ef4444', borderWidth: 1.5, pointRadius: 0, tension: 0.3 }
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: true,
+      plugins:{ legend:{ position:'bottom', labels:{ font:{size:10} } } },
+      scales:{ x:{ display:false }, y:{ title:{ display:true, text:'가속도 (m/s²)', font:{size:10} } } }
     }
   });
 
-  installBtn.addEventListener('click', async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    console.log('[PWA] 用户选择:', outcome);
-    deferredPrompt = null;
-    banner.style.display = 'none';
+  // Symmetry chart
+  const symData = [95.2, 78.4];
+  charts.sym = new Chart(document.getElementById('chart-symmetry'), {
+    type: 'radar',
+    data: {
+      labels: ['보폭 대칭','입각기 대칭','유각기 대칭','보행 속도','변동성'],
+      datasets: [
+        { label: '정상', data: [95,92,93,88,90], borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.15)', pointRadius:3 },
+        { label: '편마비', data: [78,65,72,55,45], borderColor:'#ef4444', backgroundColor:'rgba(239,68,68,0.15)', pointRadius:3 }
+      ]
+    },
+    options: { responsive:true, maintainAspectRatio:true,
+      plugins:{ legend:{ position:'bottom', labels:{ font:{size:10} } } },
+      scales:{ r:{ beginAtZero:true, max:100, ticks:{ font:{size:9} } } }
+    }
   });
 
-  dismissBtn.addEventListener('click', () => {
-    banner.style.display = 'none';
+  // Grad-CAM demo chart
+  const gcamData = Array.from({length:50}, (_,i) => {
+    if (i > 18 && i < 32) return 0.7 + Math.random()*0.3;
+    return 0.1 + Math.random()*0.2;
   });
+  charts.gcam = new Chart(document.getElementById('chart-gradcam-demo'), {
+    type: 'bar',
+    data: {
+      labels: Array.from({length:50}, (_,i) => i),
+      datasets: [{ label: 'Grad-CAM 활성화', data: gcamData,
+        backgroundColor: gcamData.map(v => v > 0.6 ? '#ef4444' : v > 0.3 ? '#f59e0b' : '#3b82f6'),
+        borderRadius: 2 }]
+    },
+    options: { responsive:true, maintainAspectRatio:true,
+      plugins:{ legend:{ position:'bottom', labels:{ font:{size:10} } } },
+      scales:{ x:{display:false}, y:{ min:0, max:1, title:{ display:true, text:'활성화 강도', font:{size:10} } } }
+    }
+  });
+}
 
-  // 检测是否已以 PWA 模式运行
-  if (window.matchMedia('(display-mode: standalone)').matches) {
-    console.log('[PWA] 以 App 模式运行');
+function updateCharts() {
+  if (!charts.region) return;
+  const regionCount = { wrist:0,hip:0,spine:0,knee:0,ankle:0,shoulder:0 };
+  analysisResults.forEach(r => regionCount[r.region]++);
+  const base = [12,8,15,6,9,5];
+  const keys = ['wrist','hip','spine','knee','ankle','shoulder'];
+  charts.region.data.datasets[0].data = keys.map((k,i) => base[i] + (regionCount[k]||0));
+  charts.region.update();
+}
+
+// ─── CAMERAS ─────────────────────────────────────────────────────────────────
+function openCamera() {
+  document.getElementById('camera-section').style.display = 'block';
+  document.getElementById('camera-section').scrollIntoView({behavior:'smooth'});
+}
+
+async function startCamera(side) {
+  try {
+    const facingMode = side === 'front' ? 'user' : 'environment';
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode }, audio: false
+    });
+    cameraStreams[side] = stream;
+    const video = document.getElementById(side+'-video');
+    video.srcObject = stream;
+    document.getElementById(side+'-dot').classList.add('active');
+  } catch(e) {
+    alert('카메라 접근 권한이 필요합니다.\nCamera access denied: ' + e.message);
   }
-})();
+}
+
+function stopCamera(side) {
+  if (cameraStreams[side]) {
+    cameraStreams[side].getTracks().forEach(t => t.stop());
+    cameraStreams[side] = null;
+  }
+  document.getElementById(side+'-dot').classList.remove('active');
+  document.getElementById(side+'-video').srcObject = null;
+}
+
+function captureFrame(side) {
+  const video = document.getElementById(side+'-video');
+  if (!video.srcObject) { alert('카메라를 먼저 시작하세요.'); return; }
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  currentImageData = canvas.toDataURL('image/png');
+  displayImage(currentImageData);
+  document.getElementById('image-viewer').scrollIntoView({behavior:'smooth'});
+}
+
+// ─── PDF ─────────────────────────────────────────────────────────────────────
+function generatePDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+  // Header
+  doc.setFillColor(26, 46, 74);
+  doc.rect(0, 0, 210, 35, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(22);
+  doc.text('YunHealth', 20, 16);
+  doc.setFontSize(12);
+  doc.text(LANG[currentLang].titleText + ' AI Report', 20, 24);
+  doc.setFontSize(9);
+  doc.text('GUO YUNYUN · 202317100', 20, 30);
+  doc.text(new Date().toLocaleDateString(), 150, 30);
+
+  // Disclaimer box
+  doc.setFillColor(254, 249, 195);
+  doc.rect(10, 38, 190, 12, 'F');
+  doc.setTextColor(120, 53, 15);
+  doc.setFontSize(8);
+  doc.text(LANG[currentLang].discText.substring(0,100) + '...', 14, 46);
+
+  // Results
+  if (lastResult) {
+    doc.setTextColor(0,0,0);
+    doc.setFontSize(14);
+    doc.text('Diagnosis Result', 20, 62);
+    doc.setDrawColor(26, 46, 74);
+    doc.line(20, 64, 190, 64);
+
+    const L = LANG[currentLang];
+    doc.setFontSize(11);
+    const rows = [
+      ['Diagnosis', L.diagnosisLabels[lastResult.diagnosis]],
+      ['Confidence', Math.round(lastResult.conf*100) + '%'],
+      ['T-score (BMD)', lastResult.tScore + ' T'],
+      ['Fracture Angle', lastResult.angle + '°'],
+      ['Risk Level', lastResult.risk],
+      ['Examined Region', lastResult.region],
+    ];
+    rows.forEach((row, i) => {
+      const y = 72 + i * 10;
+      doc.setFillColor(i%2 === 0 ? 248 : 255, i%2 === 0 ? 250 : 255, i%2 === 0 ? 252 : 255);
+      doc.rect(20, y-4, 170, 9, 'F');
+      doc.setTextColor(71, 85, 105);
+      doc.text(row[0], 25, y+1);
+      doc.setTextColor(0,0,0);
+      doc.text(row[1], 110, y+1);
+    });
+
+    doc.setFontSize(11);
+    doc.setTextColor(0,0,0);
+    doc.text('AI Note:', 20, 142);
+    doc.setFontSize(9);
+    doc.setTextColor(71, 85, 105);
+    const note = AI_NOTES[currentLang][lastResult.diagnosis];
+    doc.text(doc.splitTextToSize(note, 170), 20, 150);
+  } else {
+    doc.setFontSize(11);
+    doc.setTextColor(100,100,100);
+    doc.text('No analysis performed yet.', 20, 70);
+  }
+
+  // Current image
+  if (currentImageData) {
+    try {
+      const imgY = lastResult ? 170 : 80;
+      doc.addImage(currentImageData, 'PNG', 20, imgY, 80, 80);
+      doc.setFontSize(9);
+      doc.setTextColor(100,100,100);
+      doc.text('Uploaded Image', 20, imgY + 85);
+    } catch(e) {}
+  }
+
+  // Footer
+  doc.setFillColor(26, 46, 74);
+  doc.rect(0, 282, 210, 15, 'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(8);
+  doc.text('YunHealth Fracture Analysis System · For Research/Education Only', 20, 290);
+  doc.text('Page 1', 185, 290);
+
+  doc.save('YunHealth_FractureReport_' + Date.now() + '.pdf');
+}
+
+// ─── MODAL ───────────────────────────────────────────────────────────────────
+function showModal(type) {
+  const overlay = document.getElementById('modal-overlay');
+  const content = document.getElementById('modal-content');
+  if (type === 'gradcam') {
+    content.innerHTML = `
+      <h3>🔥 Grad-CAM 분석 상세</h3>
+      <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:16px;">
+        Grad-CAM(Gradient-weighted Class Activation Mapping)은 딥러닝 CNN 모델의 판단 근거를 시각화합니다.
+        최종 합성곱 레이어의 특징 맵에 역전파 그래디언트를 가중하여 생성됩니다.
+      </p>
+      ${lastResult ? `
+      <div style="background:var(--surface2);border-radius:10px;padding:16px;margin-bottom:16px;">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">분석 결과</div>
+        <div>진단: <span class="badge-result badge-${lastResult.diagnosis}">${LANG[currentLang].diagnosisLabels[lastResult.diagnosis]}</span></div>
+        <div style="margin-top:8px;font-size:13px;">신뢰도: ${Math.round(lastResult.conf*100)}%</div>
+        <div style="font-size:13px;">골절 각도: ${lastResult.angle}°</div>
+        <div style="font-size:13px;">T-score: ${lastResult.tScore}</div>
+      </div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.8;">${AI_NOTES[currentLang][lastResult.diagnosis]}</div>
+      ` : '<p style="color:var(--text2);">분석을 먼저 실행해 주세요.</p>'}
+    `;
+  }
+  overlay.classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('show');
+}
+document.getElementById('modal-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+// ─── LOADING ─────────────────────────────────────────────────────────────────
+function showLoading() {
+  document.getElementById('loading-overlay').classList.add('show');
+  document.getElementById('loading-text').textContent = LANG[currentLang].loadingText;
+}
+function hideLoading() {
+  document.getElementById('loading-overlay').classList.remove('show');
+}
+
+// ─── PATIENT SELECT ───────────────────────────────────────────────────────────
+function selectPatient(idx) {
+  document.querySelectorAll('.patient-row').forEach((r,i) => {
+    r.classList.toggle('active', i === idx);
+  });
+}
+
+// ─── CODE BLOCKS ─────────────────────────────────────────────────────────────
+const CODES = {
+  basic: `<span class="cm"># ══════════════════════════════════════════</span>
+<span class="cm"># Week 05 · 골절 측정 AI - 기초 분석 (Colab)</span>
+<span class="cm"># GUO YUNYUN · 202317100</span>
+<span class="cm"># ══════════════════════════════════════════</span>
+
+<span class="kw">from</span> google.colab <span class="kw">import</span> drive
+drive.mount(<span class="st">'/content/drive'</span>)
+
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">import</span> pandas <span class="kw">as</span> pd
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+<span class="kw">from</span> scipy.signal <span class="kw">import</span> find_peaks, butter, filtfilt
+
+<span class="cm"># ─── 골절 탐지를 위한 기초 신호 처리 ───────────────</span>
+sampling_rate = <span class="num">100</span>  <span class="cm"># Hz</span>
+duration = <span class="num">20</span>
+t = np.arange(<span class="num">0</span>, duration, <span class="num">1</span>/sampling_rate)
+
+<span class="cm"># 골 충격 신호 시뮬레이션</span>
+cadence = <span class="num">1.2</span>
+accel_z = (<span class="num">9.81</span>
+  + <span class="num">0.5</span> * np.sin(<span class="num">2</span>*np.pi*cadence*t)
+  + <span class="num">2.0</span> * np.maximum(np.sin(<span class="num">2</span>*np.pi*cadence*<span class="num">2</span>*t), <span class="num">0</span>)
+  + <span class="num">0.15</span> * np.random.randn(len(t)))
+
+<span class="cm"># 역치 기반 Heel Strike 감지</span>
+threshold = <span class="num">10.5</span>
+peaks, _ = find_peaks(accel_z, height=threshold, distance=<span class="num">30</span>)
+heel_strike_times = t[peaks]
+
+<span class="fn">print</span>(<span class="st">f"감지된 Heel Strike: {len(heel_strike_times)}회"</span>)
+
+<span class="cm"># 시각화</span>
+fig, ax = plt.subplots(figsize=(<span class="num">14</span>, <span class="num">6</span>))
+ax.plot(t, accel_z, <span class="st">'b-'</span>, linewidth=<span class="num">1.5</span>, label=<span class="st">'Z-axis Accel'</span>)
+ax.plot(t[peaks], accel_z[peaks], <span class="st">'ro'</span>, markersize=<span class="num">8</span>, label=<span class="st">'Heel Strike'</span>)
+ax.axhline(y=threshold, color=<span class="st">'r'</span>, linestyle=<span class="st">'--'</span>, alpha=<span class="num">0.5</span>)
+ax.set_title(<span class="st">'골절 충격 신호 분석'</span>)
+ax.legend(); plt.show()`,
+
+  bilateral: `<span class="cm"># ══════════════════════════════════════════</span>
+<span class="cm"># 좌우 대칭 분석 (보행 비대칭 → 골절 패턴)</span>
+<span class="cm"># ══════════════════════════════════════════</span>
+
+<span class="kw">def</span> <span class="fn">detect_gait_events</span>(signal, sr=<span class="num">100</span>, thr_heel=<span class="num">10.5</span>, thr_toe=<span class="num">9.5</span>):
+    heel_peaks, _ = find_peaks(signal, height=thr_heel, distance=<span class="num">30</span>)
+    toe_peaks, _ = find_peaks(-signal, height=-thr_toe, distance=<span class="num">30</span>)
+    <span class="kw">return</span> heel_peaks / sr, toe_peaks / sr
+
+<span class="kw">def</span> <span class="fn">calc_symmetry</span>(left_heel, right_heel):
+    left_stride = np.diff(left_heel)
+    right_stride = np.diff(right_heel)
+    sym = (<span class="num">1</span> - abs(left_stride.mean() - right_stride.mean())
+           / max(left_stride.mean(), right_stride.mean())) * <span class="num">100</span>
+    <span class="kw">return</span> sym
+
+<span class="cm"># 좌우 신호 생성</span>
+left_accel  = <span class="num">9.81</span> + <span class="num">0.6</span>*np.sin(<span class="num">2</span>*np.pi*<span class="num">1.2</span>*t)
+right_accel = <span class="num">9.81</span> + <span class="num">0.6</span>*np.sin(<span class="num">2</span>*np.pi*<span class="num">1.2</span>*t + np.pi)
+
+lh, lt = detect_gait_events(left_accel)
+rh, rt = detect_gait_events(right_accel)
+
+symmetry = calc_symmetry(lh, rh)
+<span class="fn">print</span>(<span class="st">f"보폭 대칭도: {symmetry:.1f}%"</span>)
+<span class="cm"># 70% 이하: 골절 또는 편측 보상 의심</span>`,
+
+  advanced: `<span class="cm"># ══════════════════════════════════════════</span>
+<span class="cm"># 고급 AI 골절 분류 모델 (EfficientNet-B3)</span>
+<span class="cm"># ══════════════════════════════════════════</span>
+
+<span class="kw">import</span> torch
+<span class="kw">import</span> torch.nn <span class="kw">as</span> nn
+<span class="kw">from</span> torchvision <span class="kw">import</span> models, transforms
+<span class="kw">from</span> PIL <span class="kw">import</span> Image
+
+<span class="cm"># ─── 모델 구성 ───────────────────────────────────────</span>
+<span class="kw">class</span> <span class="fn">FractureClassifier</span>(nn.Module):
+    <span class="kw">def</span> __init__(self, num_classes=<span class="num">2</span>):
+        <span class="kw">super</span>().__init__()
+        self.backbone = models.efficientnet_b3(pretrained=<span class="kw">True</span>)
+        in_feat = self.backbone.classifier[<span class="num">1</span>].in_features
+        self.backbone.classifier = nn.Sequential(
+            nn.Dropout(<span class="num">0.4</span>),
+            nn.Linear(in_feat, <span class="num">512</span>),
+            nn.ReLU(),
+            nn.Linear(<span class="num">512</span>, num_classes)
+        )
+
+    <span class="kw">def</span> <span class="fn">forward</span>(self, x):
+        <span class="kw">return</span> self.backbone(x)
+
+<span class="cm"># ─── 전처리 ─────────────────────────────────────────</span>
+transform = transforms.Compose([
+    transforms.Resize((<span class="num">300</span>, <span class="num">300</span>)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[<span class="num">0.485</span>,<span class="num">0.456</span>,<span class="num">0.406</span>],
+                         std=[<span class="num">0.229</span>,<span class="num">0.224</span>,<span class="num">0.225</span>])
+])
+
+<span class="cm"># ─── 추론 ────────────────────────────────────────────</span>
+model = FractureClassifier()
+model.eval()
+
+<span class="kw">def</span> <span class="fn">predict</span>(img_path):
+    img = Image.open(img_path).convert(<span class="st">'RGB'</span>)
+    x = transform(img).unsqueeze(<span class="num">0</span>)
+    <span class="kw">with</span> torch.no_grad():
+        logits = model(x)
+        probs = torch.softmax(logits, dim=<span class="num">1</span>)
+    <span class="kw">return</span> {<span class="st">'fracture'</span>: probs[<span class="num">0</span>,<span class="num">1</span>].item(), <span class="st">'normal'</span>: probs[<span class="num">0</span>,<span class="num">0</span>].item()}
+
+result = predict(<span class="st">'/content/xray_sample.jpg'</span>)
+<span class="fn">print</span>(<span class="st">f"골절 확률: {result['fracture']*100:.1f}%"</span>)`,
+
+  gradcam: `<span class="cm"># ══════════════════════════════════════════</span>
+<span class="cm"># Grad-CAM 구현 (골절 위치 시각화)</span>
+<span class="cm"># ══════════════════════════════════════════</span>
+
+<span class="kw">import</span> cv2
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">import</span> torch
+
+<span class="kw">class</span> <span class="fn">GradCAM</span>:
+    <span class="kw">def</span> __init__(self, model, target_layer):
+        self.model = model
+        self.target_layer = target_layer
+        self.gradients = <span class="kw">None</span>
+        self.activations = <span class="kw">None</span>
+        target_layer.register_forward_hook(self._save_activation)
+        target_layer.register_backward_hook(self._save_gradient)
+
+    <span class="kw">def</span> <span class="fn">_save_activation</span>(self, module, inp, out):
+        self.activations = out.detach()
+
+    <span class="kw">def</span> <span class="fn">_save_gradient</span>(self, module, grad_in, grad_out):
+        self.gradients = grad_out[<span class="num">0</span>].detach()
+
+    <span class="kw">def</span> <span class="fn">generate</span>(self, x, class_idx=<span class="kw">None</span>):
+        logits = self.model(x)
+        <span class="kw">if</span> class_idx <span class="kw">is</span> <span class="kw">None</span>:
+            class_idx = logits.argmax(dim=<span class="num">1</span>).item()
+        self.model.zero_grad()
+        logits[<span class="num">0</span>, class_idx].backward()
+
+        <span class="cm"># 가중 활성화 맵 생성</span>
+        weights = self.gradients.mean(dim=[<span class="num">2</span>,<span class="num">3</span>], keepdim=<span class="kw">True</span>)
+        cam = (weights * self.activations).sum(dim=<span class="num">1</span>, keepdim=<span class="kw">True</span>)
+        cam = torch.relu(cam)
+        cam = cam.squeeze().numpy()
+        cam = (cam - cam.min()) / (cam.max() - cam.min() + <span class="num">1e-8</span>)
+        <span class="kw">return</span> cv2.resize(cam, (<span class="num">300</span>, <span class="num">300</span>))
+
+<span class="cm"># ─── 히트맵 오버레이 생성 ────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">overlay_heatmap</span>(img, cam, alpha=<span class="num">0.4</span>):
+    heatmap = cv2.applyColorMap(
+        np.uint8(<span class="num">255</span> * cam), cv2.COLORMAP_JET)
+    heatmap = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB)
+    overlay = (alpha * heatmap / <span class="num">255</span>
+               + (<span class="num">1</span>-alpha) * img / <span class="num">255</span>)
+    <span class="kw">return</span> (overlay * <span class="num">255</span>).astype(np.uint8)
+
+<span class="cm"># ─── 사용 예시 ──────────────────────────────────────</span>
+gradcam = GradCAM(model, model.backbone.features[-<span class="num">1</span>])
+cam_map = gradcam.generate(input_tensor)
+result_img = overlay_heatmap(original_image, cam_map)
+plt.imshow(result_img); plt.title(<span class="st">'Grad-CAM 골절 위치 시각화'</span>)
+plt.axis(<span class="st">'off'</span>); plt.show()`
+};
+
+function showCode(tab) {
+  document.querySelectorAll('.code-tab').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('code-display').innerHTML = CODES[tab];
+}
+
+function copyCode() {
+  const text = document.getElementById('code-display').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target.closest('button');
+    const orig = btn.textContent;
+    btn.textContent = '✅ 복사됨!';
+    setTimeout(() => btn.textContent = orig, 1500);
+  });
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  applyLang();
+  initCharts();
+  showCode('basic');
+});
+</script>
+
+<!-- ✅ PWA 安装横幅 -->
+<div id="pwaInstallBanner" style="display:none;position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#1a2e4a,#2563eb);color:white;padding:1rem 1.5rem;border-radius:16px;box-shadow:0 8px 32px rgba(37,99,235,0.4);z-index:9999;align-items:center;gap:1rem;max-width:420px;width:calc(100% - 2rem);">
+  <div style="font-size:1.8rem">📱</div>
+  <div style="flex:1">
+    <strong style="display:block;font-size:0.95rem">安装到主屏幕</strong>
+    <span style="font-size:0.8rem;opacity:0.85">离线可用 · 快速访问 · 全球畅通</span>
+  </div>
+  <button id="pwaInstallBtn" style="background:white;color:#1a2e4a;border:none;padding:0.5rem 1.1rem;border-radius:50px;font-weight:700;cursor:pointer;font-size:0.85rem">安装</button>
+  <button id="pwaDismissBtn" style="background:none;border:none;color:rgba(255,255,255,0.7);cursor:pointer;font-size:1.2rem;padding:0.2rem">✕</button>
+</div>
+
+<script>
+// ── Service Worker 注册 ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(r => console.log('[PWA] SW registered:', r.scope))
+      .catch(e => console.warn('[PWA] SW failed:', e));
+  });
+}
+// ── 安装横幅 ──
+let _deferredPrompt;
+const _banner = document.getElementById('pwaInstallBanner');
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _deferredPrompt = e;
+  if (!window.matchMedia('(display-mode: standalone)').matches) {
+    _banner.style.display = 'flex';
+  }
+});
+document.getElementById('pwaInstallBtn').addEventListener('click', async () => {
+  if (!_deferredPrompt) return;
+  _deferredPrompt.prompt();
+  await _deferredPrompt.userChoice;
+  _deferredPrompt = null;
+  _banner.style.display = 'none';
+});
+document.getElementById('pwaDismissBtn').addEventListener('click', () => {
+  _banner.style.display = 'none';
+});
 </script>
 
 </body>
