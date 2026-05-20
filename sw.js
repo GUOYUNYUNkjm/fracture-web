@@ -3,7 +3,7 @@
 // 版本: 1.0.0  |  全球访问 + 离线缓存
 // =============================================
 
-const CACHE_NAME = 'fracture-ai-v1';
+const CACHE_NAME = 'fracture-ai-v3';
 const OFFLINE_URL = '/offline.html';
 
 // 需要预缓存的核心资源

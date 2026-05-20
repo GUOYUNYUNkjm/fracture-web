@@ -9,7 +9,10 @@
   "background_color": "#0a1628",
   "theme_color": "#1a73e8",
   "lang": "zh-CN",
-  "categories": ["medical", "health"],
+  "categories": [
+    "medical",
+    "health"
+  ],
   "icons": [
     {
       "src": "icons/icon-72.png",
@@ -81,13 +84,23 @@
       "name": "图片诊断",
       "short_name": "图片",
       "url": "/#image",
-      "icons": [{ "src": "icons/icon-96.png", "sizes": "96x96" }]
+      "icons": [
+        {
+          "src": "icons/icon-96.png",
+          "sizes": "96x96"
+        }
+      ]
     },
     {
       "name": "实时监测",
       "short_name": "实时",
       "url": "/#camera",
-      "icons": [{ "src": "icons/icon-96.png", "sizes": "96x96" }]
+      "icons": [
+        {
+          "src": "icons/icon-96.png",
+          "sizes": "96x96"
+        }
+      ]
     }
   ]
 }
