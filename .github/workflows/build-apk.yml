@@ -1,0 +1,83 @@
+name: Build WebView APK
+
+on:
+  push:
+    paths:
+      - 'android-app/**'
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: ☕ Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: 🔧 Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: 📦 Generate App Icons
+        run: |
+          sudo apt-get install -y imagemagick -q
+          mkdir -p android-app/app/src/main/res/mipmap-hdpi
+          mkdir -p android-app/app/src/main/res/mipmap-xhdpi
+          mkdir -p android-app/app/src/main/res/mipmap-xxhdpi
+          mkdir -p android-app/app/src/main/res/mipmap-xxxhdpi
+
+          # 创建带骨折图标的启动图
+          convert -size 192x192 \
+            gradient:'#1a2e4a-#2563eb' \
+            -gravity Center \
+            -fill white -pointsize 100 -annotate 0 '🦴' \
+            android-app/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png 2>/dev/null || \
+          convert -size 192x192 xc:'#1a2e4a' \
+            -fill '#2563eb' -draw "circle 96,96 96,20" \
+            -fill white -draw "line 60,60 132,132" \
+            android-app/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+
+          convert android-app/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png \
+            -resize 72x72 android-app/app/src/main/res/mipmap-hdpi/ic_launcher.png
+          convert android-app/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png \
+            -resize 96x96 android-app/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+          convert android-app/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png \
+            -resize 144x144 android-app/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+          echo "✅ Icons generated"
+
+      - name: 🔨 Make gradlew executable
+        run: |
+          cd android-app
+          gradle wrapper --gradle-version 8.4
+          chmod +x gradlew
+
+      - name: 🏗️ Build Release APK
+        run: |
+          cd android-app
+          ./gradlew assembleRelease --no-daemon
+
+      - name: 📤 Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 骨折AI-WebView
+          path: android-app/app/build/outputs/apk/release/app-release.apk
+          retention-days: 30
+
+      - name: 🚀 Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ github.run_number }}
+          name: "AI骨折监测 v${{ github.run_number }}"
+          body: |
+            ## 📱 AI骨折智能监测系统 — WebView版
+            - ✅ 直接打开 App，不跳转浏览器
+            - ✅ 完整骨折诊断功能
+            - ✅ 支持摄像头、图片、视频检测
+          files: android-app/app/build/outputs/apk/release/app-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
