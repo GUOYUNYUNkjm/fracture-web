@@ -3,19 +3,19 @@
 // 版本: 1.0.0  |  全球访问 + 离线缓存
 // =============================================
 
-const CACHE_NAME = 'fracture-ai-v3';
-const OFFLINE_URL = '/offline.html';
+const CACHE_NAME = 'fracture-ai-v4';
+const OFFLINE_URL = '/fracture-web/offline.html';
 
 // 需要预缓存的核心资源
 const PRECACHE_ASSETS = [
   '/',
-  '/index.html',
+  '/fracture-web/index.html',
   '/style.css',
   '/script.js',
-  '/manifest.json',
-  '/offline.html',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png'
+  '/fracture-web/manifest.json',
+  '/fracture-web/offline.html',
+  '/fracture-web/icons/icon-192.png',
+  '/fracture-web/icons/icon-512.png'
 ];
 
 // ── 安装阶段：预缓存核心资源 ──────────────────
@@ -104,8 +104,8 @@ self.addEventListener('push', event => {
   event.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,
-      icon: '/icons/icon-192.png',
-      badge: '/icons/icon-96.png'
+      icon: '/fracture-web/icons/icon-192.png',
+      badge: '/fracture-web/icons/icon-96.png'
     })
   );
 });
