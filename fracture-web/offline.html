@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>离线 — AI骨折监测系统</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      background: #0a1628;
+      color: #e8f0fe;
+      font-family: 'Noto Sans SC', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+    }
+    .icon {
+      font-size: 5rem;
+      margin-bottom: 1.5rem;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(0.95); }
+    }
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      color: #4da6ff;
+    }
+    p {
+      font-size: 1rem;
+      color: #8ab4f8;
+      line-height: 1.7;
+      max-width: 360px;
+      margin: 0 auto 2rem;
+    }
+    .btn {
+      background: #1a73e8;
+      color: white;
+      border: none;
+      padding: 0.9rem 2.5rem;
+      border-radius: 50px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:hover { background: #1557b0; transform: translateY(-2px); }
+    .status {
+      margin-top: 2rem;
+      font-size: 0.85rem;
+      color: #5f6368;
+    }
+  </style>
+</head>
+<body>
+  <div class="icon">📡</div>
+  <h1>当前处于离线状态</h1>
+  <p>
+    AI骨折监测系统需要网络连接才能进行诊断分析。<br />
+    请检查您的网络后重试。
+  </p>
+  <button class="btn" onclick="location.reload()">🔄 重新连接</button>
+  <p class="status">AI Fracture Monitoring System · 全球访问版</p>
+
+  <script>
+    window.addEventListener('online', () => location.reload());
+  </script>
+</body>
+</html>
