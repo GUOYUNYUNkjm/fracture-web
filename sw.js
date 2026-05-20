@@ -4,18 +4,18 @@
 // =============================================
 
 const CACHE_NAME = 'fracture-ai-v1';
-const OFFLINE_URL = '/fracture-web/offline.html';
+const OFFLINE_URL = '/offline.html';
 
 // 需要预缓存的核心资源
 const PRECACHE_ASSETS = [
-  '/fracture-web/',
-  '/fracture-web/index.html',
-  '/fracture-web/style.css',
-  '/fracture-web/script.js',
-  '/fracture-web/manifest.json',
-  '/fracture-web/offline.html',
-  '/fracture-web/icons/icon-192.png',
-  '/fracture-web/icons/icon-512.png'
+  '/',
+  '/index.html',
+  '/style.css',
+  '/script.js',
+  '/manifest.json',
+  '/offline.html',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png'
 ];
 
 // ── 安装阶段：预缓存核心资源 ──────────────────
@@ -104,8 +104,8 @@ self.addEventListener('push', event => {
   event.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,
-      icon: '/fracture-web/icons/icon-192.png',
-      badge: '/fracture-web/icons/icon-96.png'
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-96.png'
     })
   );
 });

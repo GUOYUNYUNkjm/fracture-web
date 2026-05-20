@@ -2,8 +2,8 @@
   "name": "AI骨折智能监测系统",
   "short_name": "骨折AI",
   "description": "AI Fracture Monitoring & Diagnostic Platform — 骨折智能监测与分级识别平台",
-  "start_url": "/fracture-web/",
-  "scope": "/fracture-web/",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#0a1628",
@@ -80,13 +80,13 @@
     {
       "name": "图片诊断",
       "short_name": "图片",
-      "url": "/fracture-web/#image",
+      "url": "/#image",
       "icons": [{ "src": "icons/icon-96.png", "sizes": "96x96" }]
     },
     {
       "name": "实时监测",
       "short_name": "实时",
-      "url": "/fracture-web/#camera",
+      "url": "/#camera",
       "icons": [{ "src": "icons/icon-96.png", "sizes": "96x96" }]
     }
   ]
