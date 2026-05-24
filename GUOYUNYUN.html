@@ -1,0 +1,2308 @@
+<!DOCTYPE html>
+<html lang="ko" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#3182F6">
+<title>GUOYUNYUN · 202317100 — SHine-K 2.0</title>
+<style>
+/* ═══ DESIGN TOKENS (Toss-style, projector-optimized) ═══ */
+:root{
+  --bg:#F9FAFB; --bg2:#F2F4F6; --bg3:#EEF0F2;
+  --card:#fff; --bdr:#E5E8EB; --bdr2:#D1D6DB;
+  --ink:#191F28; --ink2:#333D4B; --ink3:#4E5968; --ink4:#8B95A1; --ink5:#B0B8C1;
+  --a:#3182F6; --al:#4DABF7; --ad:#1B64DA; --abg:#E8F2FF;
+  --g:#16C68C; --gbg:#E1F8EF;
+  --w:#FF9F2D; --wbg:#FFF4E5;
+  --r:#F04452; --rbg:#FFE9EB;
+  --p:#8B5CF6; --pbg:#F1EBFD;
+  --amb:#FF7A00; --ambbg:#FFF1E6;
+  --sh0:0 1px 4px rgba(15,23,42,.05);
+  --sh1:0 4px 16px rgba(15,23,42,.07);
+  --sh2:0 12px 36px rgba(15,23,42,.09);
+  --sans:'Pretendard Variable','Pretendard',-apple-system,BlinkMacSystemFont,system-ui,
+         'Apple SD Gothic Neo','Malgun Gothic','Microsoft YaHei UI','PingFang SC',
+         Roboto,'Helvetica Neue',Arial,sans-serif;
+  --mono:'SF Mono','JetBrains Mono',Consolas,monospace;
+  --ease:cubic-bezier(.16,1,.3,1);
+  --ease2:cubic-bezier(.4,0,.2,1);
+  /* Projector sizes */
+  --fs-body:17px; --fs-sm:14px; --fs-xs:12px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);
+  font-size:var(--fs-body);line-height:1.6;-webkit-font-smoothing:antialiased;
+  overflow-x:hidden;letter-spacing:-.01em}
+::selection{background:var(--a);color:#fff}
+a{color:var(--a);text-decoration:none}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:3px}
+
+
+/* ═══ 背景几何图案 ═══ */
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(49,130,246,.07) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 40% at 90% 90%, rgba(22,198,140,.04) 0%, transparent 60%),
+    #F9FAFB;
+}
+.bg-geo{
+  position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;
+}
+
+/* ═══ LAYOUT ═══ */
+.wrap{max-width:1280px;margin:0 auto;padding:0 32px;position:relative;z-index:1}
+
+/* ═══ TOPBAR ═══ */
+.topbar{position:fixed;top:16px;right:16px;z-index:500;display:flex;gap:10px;align-items:center}
+.lang-pill{background:#fff;border:1px solid var(--bdr);border-radius:50px;padding:4px;
+  box-shadow:var(--sh0);display:inline-flex}
+.lang-pill button{padding:7px 16px;border-radius:50px;font-size:var(--fs-sm);font-weight:700;
+  color:var(--ink4);transition:.18s var(--ease)}
+.lang-pill button.on{background:var(--a);color:#fff}
+
+/* ─── ALERT BELL (改进3: 右上角实时角标) ─── */
+.bell{position:relative}
+.bell-btn{width:42px;height:42px;background:#fff;border:1px solid var(--bdr);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;box-shadow:var(--sh0);
+  transition:.18s;cursor:pointer}
+.bell-btn:hover{border-color:var(--r);background:var(--rbg)}
+.bell-btn svg{width:18px;height:18px;stroke:var(--ink3);stroke-width:2;
+  fill:none;stroke-linecap:round;stroke-linejoin:round;transition:.18s}
+.bell-btn:hover svg{stroke:var(--r)}
+.bell-cnt{position:absolute;top:-5px;right:-5px;min-width:20px;height:20px;
+  background:var(--r);color:#fff;font-size:11px;font-weight:900;
+  border-radius:10px;display:flex;align-items:center;justify-content:center;
+  border:2px solid #fff;padding:0 4px;animation:bp 2s ease-in-out infinite}
+@keyframes bp{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}
+.bell-drop{position:absolute;top:calc(100% + 10px);right:0;width:310px;
+  background:#fff;border:1px solid var(--bdr);border-radius:16px;
+  box-shadow:var(--sh2);padding:10px;
+  opacity:0;pointer-events:none;transform:translateY(-8px);
+  transition:opacity .18s,transform .18s;z-index:600}
+.bell:hover .bell-drop{opacity:1;pointer-events:all;transform:translateY(0)}
+.bell-item{display:flex;gap:12px;align-items:flex-start;padding:12px;
+  border-radius:10px;cursor:pointer;transition:background .12s}
+.bell-item:hover{background:var(--bg2)}
+.bdot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.bdot.r{background:var(--r)} .bdot.w{background:var(--w)}
+.bell-title{font-size:var(--fs-sm);font-weight:700;color:var(--ink);margin-bottom:3px}
+.bell-sub{font-size:var(--fs-xs);color:var(--ink4)}
+
+/* ═══ NAV (改进1: 悬停下拉菜单) ═══ */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:16px 0;
+  transition:.3s var(--ease);
+  background:rgba(249,250,251,.75);backdrop-filter:saturate(180%) blur(20px)}
+nav.sc{background:rgba(255,255,255,.96);border-bottom:1px solid var(--bdr);padding:11px 0}
+nav .wrap{display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:12px;font-weight:900;font-size:1.1rem;color:var(--ink)}
+.logo-m{width:40px;height:40px;background:var(--a);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;color:#fff;
+  font-weight:900;font-size:.65rem;letter-spacing:.5px;
+  box-shadow:0 4px 14px rgba(49,130,246,.35)}
+.nav-list{display:flex;gap:4px;list-style:none}
+.ni{position:relative}
+.ni > a{display:block;padding:9px 15px;color:var(--ink3);font-size:var(--fs-sm);
+  font-weight:700;border-radius:9px;transition:.18s;white-space:nowrap}
+.ni > a:hover{color:var(--a);background:var(--abg)}
+.ndrop{position:absolute;top:calc(100% + 8px);left:0;background:#fff;
+  border:1px solid var(--bdr);border-radius:16px;min-width:200px;
+  padding:8px;box-shadow:var(--sh2);
+  opacity:0;pointer-events:none;transform:translateY(-10px);
+  transition:opacity .18s,transform .18s;z-index:300}
+.ni:hover .ndrop{opacity:1;pointer-events:all;transform:translateY(0)}
+.nda{display:flex;align-items:center;gap:10px;padding:10px 13px;
+  color:var(--ink2);font-size:var(--fs-sm);border-radius:10px;font-weight:600;
+  transition:background .12s;white-space:nowrap}
+.nda:hover{background:var(--abg);color:var(--a)}
+.nda svg{width:15px;height:15px;flex-shrink:0;stroke:currentColor;stroke-width:2;
+  fill:none;stroke-linecap:round;stroke-linejoin:round}
+.ndnew{font-size:10px;font-weight:800;background:var(--gbg);color:var(--g);
+  padding:2px 7px;border-radius:4px;margin-left:auto}
+.nav-cta{padding:11px 22px;background:var(--a);color:#fff;border-radius:11px;
+  font-size:var(--fs-sm);font-weight:800;transition:.2s var(--ease)}
+.nav-cta:hover{background:var(--ad);transform:translateY(-1px);
+  box-shadow:0 10px 24px rgba(49,130,246,.3)}
+
+/* ═══ HERO ═══ */
+.hero{min-height:100vh;display:flex;align-items:center;position:relative;
+  overflow:hidden;padding:130px 0 90px;
+  background:radial-gradient(1000px circle at 80% 10%,rgba(49,130,246,.07),transparent 50%),
+             radial-gradient(700px circle at 5% 90%,rgba(22,198,140,.04),transparent 50%),var(--bg)}
+.hero-content{position:relative;z-index:2;max-width:860px}
+.eyebrow{display:inline-flex;align-items:center;gap:11px;background:#fff;
+  border:1px solid var(--bdr);border-radius:50px;padding:7px 20px 7px 7px;
+  font-size:var(--fs-sm);margin-bottom:30px;color:var(--ink3);
+  box-shadow:var(--sh0);font-weight:700}
+.eyebrow .badge{background:var(--a);color:#fff;font-weight:800;
+  font-size:var(--fs-xs);padding:5px 14px;border-radius:50px}
+.ldot{width:7px;height:7px;border-radius:50%;background:var(--g);flex-shrink:0;
+  animation:lp 1.8s ease-in-out infinite}
+@keyframes lp{0%,100%{box-shadow:0 0 0 0 rgba(22,198,140,.5)}
+  50%{box-shadow:0 0 0 9px rgba(22,198,140,0)}}
+.hero h1{font-size:clamp(2.6rem,5.5vw,4.6rem);font-weight:900;line-height:1.06;
+  letter-spacing:-3px;margin-bottom:24px;color:var(--ink)}
+.hero h1 .acc{color:var(--a)}
+.hero-sub{font-size:clamp(1.05rem,1.8vw,1.25rem);color:var(--ink3);
+  line-height:1.8;margin-bottom:42px;max-width:680px}
+.btns{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:56px}
+.btn{padding:16px 30px;border-radius:13px;font-size:1rem;font-weight:800;
+  display:inline-flex;align-items:center;gap:9px;
+  transition:.25s var(--ease);font-family:inherit;white-space:nowrap}
+.btn-p{background:var(--a);color:#fff}
+.btn-p:hover{background:var(--ad);transform:translateY(-2px);
+  box-shadow:0 14px 30px rgba(49,130,246,.32)}
+.btn-g{background:#fff;color:var(--ink);border:1.5px solid var(--bdr2)}
+.btn-g:hover{border-color:var(--a);color:var(--a)}
+
+/* CountUp stats (改进2) */
+.hstats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;max-width:720px}
+@media(max-width:640px){.hstats{grid-template-columns:repeat(2,1fr)}}
+.hstat{padding:22px 24px;background:#fff;border:1px solid var(--bdr);
+  border-radius:18px;transition:.3s var(--ease)}
+.hstat:hover{border-color:var(--al);transform:translateY(-3px);box-shadow:var(--sh1)}
+.hstat .num{font-size:clamp(1.7rem,3vw,2.4rem);font-weight:900;color:var(--ink);
+  line-height:1.1;letter-spacing:-1.5px;font-variant-numeric:tabular-nums}
+.hstat .lbl{font-size:var(--fs-xs);color:var(--ink3);margin-top:6px;font-weight:700;line-height:1.4}
+.hero-scr{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);
+  z-index:3;font-size:.68rem;color:var(--ink5);font-family:var(--mono);
+  letter-spacing:1.5px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.hero-scr i{width:1px;height:30px;background:var(--ink5);position:relative;overflow:hidden}
+.hero-scr i::after{content:'';position:absolute;top:-100%;left:0;
+  width:1px;height:100%;background:var(--a);animation:sd 2s var(--ease2) infinite}
+@keyframes sd{0%{top:-100%}100%{top:100%}}
+
+/* ═══ TICKER ═══ */
+.ticker{border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr);
+  padding:16px 0;overflow:hidden;white-space:nowrap;background:#fff}
+.ticker-inner{display:inline-flex;gap:60px;animation:tk 44s linear infinite;padding-left:60px}
+@keyframes tk{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.ti{display:inline-flex;align-items:center;gap:9px;font-size:var(--fs-sm);color:var(--ink3);font-weight:600}
+.ti b{font-weight:800;color:var(--a);font-family:var(--mono)}
+.tg{color:var(--g)} .tr{color:var(--r)} .tw{color:var(--w)}
+
+/* ═══ SECTION ═══ */
+section{padding:100px 0;position:relative}
+.bg2{background:var(--bg2)}
+.sec-lbl{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:3px;
+  color:var(--a);margin-bottom:14px;display:inline-flex;align-items:center;gap:11px}
+.sec-lbl::before{content:'';display:inline-block;width:26px;height:1.5px;background:var(--a)}
+.sec-title{font-size:clamp(2rem,4vw,3.2rem);font-weight:900;line-height:1.1;
+  letter-spacing:-2px;margin-bottom:14px;color:var(--ink)}
+.sec-title .acc{color:var(--a)}
+.sec-desc{font-size:1.02rem;color:var(--ink3);max-width:700px;line-height:1.8}
+.sec-hd{margin-bottom:52px}
+.card{background:#fff;border:1px solid var(--bdr);border-radius:20px;
+  padding:30px;transition:.3s var(--ease)}
+.card:hover{border-color:var(--bdr2);box-shadow:var(--sh1);transform:translateY(-3px)}
+
+/* ═══ REGISTER ═══ */
+.reg-layout{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:start}
+@media(max-width:900px){.reg-layout{grid-template-columns:1fr}}
+.reg-card{background:#fff;border:1px solid var(--bdr);border-radius:20px;padding:36px}
+.form-title{font-size:1.12rem;font-weight:800;margin-bottom:7px}
+.form-sub{font-size:var(--fs-sm);color:var(--ink3);margin-bottom:24px;line-height:1.7}
+.frow{margin-bottom:17px}
+.frow2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:17px}
+.flbl{font-size:var(--fs-sm);font-weight:700;color:var(--ink2);margin-bottom:6px;display:block}
+.fi,.fsel{width:100%;height:48px;border:1.5px solid var(--bdr);
+  border-radius:11px;padding:0 15px;font-size:var(--fs-sm);color:var(--ink);
+  font-family:inherit;outline:none;background:#fff;
+  transition:.2s var(--ease);appearance:none}
+.fi:focus,.fsel:focus{border-color:var(--a);box-shadow:0 0 0 3px rgba(49,130,246,.12)}
+.fi::placeholder{color:var(--ink5)}
+.age-w{display:none;margin-top:8px;padding:10px 13px;background:var(--ambbg);
+  border-radius:9px;border-left:3px solid var(--amb);
+  font-size:var(--fs-sm);color:var(--amb);font-weight:700}
+.sub-btn{width:100%;height:52px;background:var(--a);color:#fff;border-radius:13px;
+  font-size:1rem;font-weight:800;font-family:inherit;transition:.25s var(--ease)}
+.sub-btn:hover{background:var(--ad);transform:translateY(-1px);
+  box-shadow:0 12px 28px rgba(49,130,246,.28)}
+.recent-card{background:#fff;border:1px solid var(--bdr);border-radius:20px;padding:28px}
+.recent-hd{font-size:.95rem;font-weight:800;margin-bottom:16px;
+  display:flex;align-items:center;gap:10px}
+.live-bdg{display:inline-flex;align-items:center;gap:6px;background:var(--gbg);
+  color:var(--g);font-size:var(--fs-xs);font-weight:700;padding:4px 10px;border-radius:20px}
+.ri{display:flex;align-items:center;gap:13px;padding:11px 0;
+  border-bottom:1px solid var(--bg2)}
+.ri:last-child{border-bottom:none}
+.av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+.avb{background:var(--abg);color:var(--a)} .ava{background:var(--ambbg);color:var(--amb)}
+.avg{background:var(--gbg);color:var(--g)} .avr{background:var(--rbg);color:var(--r)}
+.ri-name{font-size:var(--fs-sm);font-weight:700}
+.ri-meta{font-size:var(--fs-xs);color:var(--ink4);margin-top:2px}
+.ri-time{font-size:var(--fs-xs);color:var(--ink5);font-family:var(--mono);margin-left:auto;white-space:nowrap}
+.etag{font-size:var(--fs-xs);font-weight:700;background:var(--ambbg);
+  color:var(--amb);padding:2px 7px;border-radius:5px;margin-left:4px}
+
+/* ═══ MONITOR ═══ */
+.mon-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px}
+@media(max-width:900px){.mon-grid{grid-template-columns:repeat(2,1fr)}}
+.mst{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:16px;
+  padding:22px 24px;transition:.3s var(--ease)}
+.mst:hover{border-color:var(--a-light);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.3)}
+.mnum{font-size:2.2rem;font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
+.mlbl{font-size:var(--fs-xs);color:rgba(255,255,255,.55);margin-top:6px;font-weight:700}
+
+/* ═══ WORKER TABLE ═══ */
+.wt{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:20px;overflow:visible;backdrop-filter:blur(8px)}
+.wt-bar{display:flex;align-items:center;gap:10px;padding:16px 22px;border-bottom:1px solid rgba(255,255,255,.08)}
+.wsrch{flex:1;position:relative}
+.wsrch svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);
+  width:16px;height:16px;stroke:var(--ink4);stroke-width:2;fill:none;pointer-events:none}
+.wsrch input{width:100%;height:40px;border:1px solid rgba(255,255,255,.18);border-radius:9px;
+  padding:0 13px 0 36px;font-size:var(--fs-sm);color:#fff;font-family:inherit;
+  outline:none;background:rgba(255,255,255,.1);transition:.18s}
+.wsrch input:focus{border-color:var(--a-light);background:rgba(255,255,255,.15)}
+.wsrch input::placeholder{color:rgba(255,255,255,.35)}
+.fb{height:40px;padding:0 15px;border:1px solid rgba(255,255,255,.2);border-radius:9px;
+  background:rgba(255,255,255,.08);color:rgba(255,255,255,.65);font-size:var(--fs-sm);font-weight:700;
+  font-family:inherit;transition:.18s;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.fb:hover{border-color:var(--a-light);color:#fff;background:rgba(49,130,246,.25)}
+.fb.on{border-color:var(--a-light);color:#fff;background:rgba(49,130,246,.35)}
+/* 表头 */
+.wt-hd{display:grid;
+  grid-template-columns:44px minmax(0,2fr) 96px 88px 88px 88px 120px minmax(0,1fr);
+  padding:11px 22px;background:rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.1)}
+.wth{font-size:var(--fs-xs);font-weight:700;color:rgba(255,255,255,.45);letter-spacing:.06em;text-transform:uppercase}
+
+/* ─── ROW + HOVER TOOLTIP (改进核心) ─── */
+.wt-row{display:grid;
+  grid-template-columns:44px minmax(0,2fr) 96px 88px 88px 88px 120px minmax(0,1fr);
+  padding:15px 22px;border-bottom:1px solid rgba(255,255,255,.07);align-items:center;
+  transition:background .14s;position:relative;cursor:pointer}
+.wt-row:last-child{border-bottom:none}
+.wt-row:hover{background:rgba(255,255,255,.08)}
+/* tooltip 仅悬停行时出现 */
+.wname{font-size:var(--fs-sm);font-weight:700;color:var(--ink);
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.wsub{font-size:var(--fs-xs);color:var(--ink4);margin-top:3px}
+.wid{font-size:11px;font-family:var(--mono);color:var(--a);
+  background:var(--abg);padding:2px 6px;border-radius:5px;font-weight:700}
+.we{font-size:11px;font-weight:700;background:var(--ambbg);color:var(--amb);
+  padding:2px 7px;border-radius:5px}
+.sts{display:flex;align-items:center;gap:6px;font-size:var(--fs-sm);font-weight:700}
+.sd{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sok{color:var(--g)} .sok .sd{background:var(--g)}
+.swa{color:var(--w)} .swa .sd{background:var(--w)}
+.sri{color:var(--r)} .sri .sd{background:var(--r);animation:lp 1s infinite}
+.vt{font-size:var(--fs-sm);font-weight:700;color:var(--ink2)}
+.vt.wa{color:var(--w)} .vt.ri{color:var(--r)}
+.prow{display:flex;gap:4px}
+.pc{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;
+  justify-content:center;font-size:13px;transition:.15s}
+.pcok{background:var(--gbg);color:var(--g)} .pcno{background:var(--rbg);color:var(--r)}
+.tagrow{display:flex;gap:5px;flex-wrap:wrap}
+.wtag{font-size:11px;font-weight:700;padding:3px 8px;border-radius:5px}
+.wtr{background:var(--rbg);color:var(--r)} .wtw{background:var(--wbg);color:var(--w)}
+.wt-empty{padding:48px;text-align:center;color:var(--ink4);font-size:var(--fs-sm)}
+.wt-foot{display:flex;align-items:center;justify-content:space-between;
+  padding:13px 22px;border-top:1px solid rgba(255,255,255,.08);font-size:var(--fs-xs);color:rgba(255,255,255,.4)}
+
+/* ─── HOVER TOOLTIP (深色气泡) ─── */
+.wtt{position:absolute;right:calc(100% - 16px);top:50%;
+  transform:translateY(-50%) translateX(12px);width:238px;
+  background:#0D1B2A;border-radius:14px;padding:18px;
+  opacity:0;pointer-events:none;
+  transition:opacity .2s var(--ease),transform .2s var(--ease);
+  z-index:100;box-shadow:0 10px 32px rgba(0,0,0,.25)}
+.wtt::after{content:'';position:absolute;left:100%;top:50%;
+  transform:translateY(-50%);border:7px solid transparent;border-left-color:#0D1B2A}
+.tt-hd{font-size:11px;font-weight:700;color:#5A7FA8;letter-spacing:.06em;
+  text-transform:uppercase;margin-bottom:12px;padding-bottom:10px;
+  border-bottom:1px solid rgba(255,255,255,.07)}
+.tt-r{display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:8px;font-size:var(--fs-sm)}
+.tt-r:last-child{margin-bottom:0}
+.ttk{color:#5A7FA8} .ttv{color:#E2EBF8;font-weight:700}
+.ttv.ok{color:var(--g)} .ttv.wa{color:var(--w)} .ttv.ri{color:#FF5A5A}
+.tt-bw{flex:1;height:4px;background:rgba(255,255,255,.1);border-radius:2px;margin:0 8px}
+.tt-bf{height:100%;border-radius:2px}
+.tt-sep{border-top:1px solid rgba(255,255,255,.07);margin:9px 0}
+
+/* ═══ ELDERLY (改进4+全球首创) ═══ */
+.el-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:26px}
+@media(max-width:700px){.el-kpi{grid-template-columns:1fr}}
+.kpi{background:#fff;border:1px solid var(--bdr);border-radius:16px;
+  padding:24px;transition:.3s var(--ease);position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:0}
+.kri::before{background:var(--r)} .kwa::before{background:var(--w)} .kin::before{background:var(--a)}
+.kpi:hover{transform:translateY(-3px);box-shadow:var(--sh1)}
+.kico{font-size:1.6rem;margin-bottom:10px}
+.knum{font-size:2rem;font-weight:900;line-height:1;margin-bottom:5px;font-variant-numeric:tabular-nums}
+.klbl{font-size:var(--fs-sm);font-weight:700;color:var(--ink3);margin-bottom:9px}
+.kbar{height:7px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.kfill{height:100%;border-radius:4px;transition:width 1.2s var(--ease)}
+.el-list{background:#fff;border:1px solid var(--bdr);border-radius:20px;overflow:visible}
+.el-hd{display:grid;grid-template-columns:44px 1fr 76px 88px 1fr 1fr;
+  padding:11px 22px;background:var(--bg2);border-bottom:1px solid var(--bdr)}
+.elth{font-size:var(--fs-xs);font-weight:700;color:var(--ink4);text-transform:uppercase;letter-spacing:.06em}
+.el-row{display:grid;grid-template-columns:44px 1fr 76px 88px 1fr 1fr;
+  padding:15px 22px;border-bottom:1px solid var(--bg2);align-items:center;
+  transition:background .14s;cursor:pointer;position:relative}
+.el-row:last-child{border-bottom:none}
+.el-row:hover{background:#FFF8F0}
+.rbar{height:9px;background:var(--bg3);border-radius:5px;overflow:hidden}
+.rfill{height:100%;border-radius:5px;transition:width 1s var(--ease)}
+.eltt{position:fixed;width:210px;
+  background:#1A0A00;border-radius:12px;padding:15px;
+  opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease;
+  z-index:9999;box-shadow:0 8px 28px rgba(0,0,0,.28);transform:translateY(-4px)}
+.eltt.show{opacity:1;pointer-events:auto;transform:translateY(0)}
+.eltt::after{content:'';position:absolute;left:100%;top:18px;
+  border:7px solid transparent;border-left-color:#1A0A00}
+.etr{display:flex;justify-content:space-between;font-size:var(--fs-sm);margin-bottom:6px}
+.etr:last-child{margin-bottom:0}
+.etk{color:#9A7060} .etv{color:#FFE4CC;font-weight:700}
+
+/* ═══ ALERTS (改进8: 119 SOS) ═══ */
+.al-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:32px}
+@media(max-width:700px){.al-grid{grid-template-columns:1fr}}
+.alc{background:#fff;border:1px solid var(--bdr);border-radius:16px;
+  padding:22px;transition:.3s var(--ease)}
+.alc.dan{border-color:var(--r);background:var(--rbg);
+  animation:ag 2s ease-in-out infinite}
+@keyframes ag{0%,100%{box-shadow:0 0 0 0 rgba(240,68,82,.14)}
+  50%{box-shadow:0 0 0 10px rgba(240,68,82,0)}}
+.alc.wrn{border-color:var(--w);background:var(--wbg)}
+.alc:hover{transform:translateY(-2px);box-shadow:var(--sh1)}
+.al-lvl{font-size:var(--fs-xs);font-weight:800;padding:4px 12px;border-radius:20px;
+  display:inline-flex;align-items:center;gap:6px;margin-bottom:10px}
+.lvd{background:var(--r);color:#fff} .lvw{background:var(--w);color:#fff}
+.lvo{background:var(--g);color:#fff}
+.al-t{font-size:1rem;font-weight:800;color:var(--ink);margin-bottom:5px}
+.al-d{font-size:var(--fs-sm);color:var(--ink3);line-height:1.65;margin-bottom:10px}
+.al-m{font-size:var(--fs-xs);color:var(--ink4);font-family:var(--mono);display:flex;gap:12px}
+/* 119 SOS (改进8) */
+.sos{display:inline-flex;align-items:center;gap:9px;padding:13px 22px;
+  background:var(--r);color:#fff;border-radius:11px;font-weight:800;
+  font-size:var(--fs-sm);margin-top:14px;cursor:pointer;border:none;font-family:inherit;
+  animation:sos-p 1.5s ease-in-out infinite}
+@keyframes sos-p{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.75;transform:scale(.98)}}
+.sos:hover{background:#C0102A;animation:none;transform:scale(1.03)}
+
+/* ═══ FLOW ═══ */
+.flow{display:flex;gap:0;overflow-x:auto;padding-bottom:4px}
+.fs{flex:1;min-width:144px;position:relative}
+.fs:not(:last-child)::after{content:'→';position:absolute;right:-15px;top:50%;
+  transform:translateY(-50%);font-size:1.3rem;color:var(--ink4);z-index:1}
+.fsi{background:#fff;border:1px solid var(--bdr);border-radius:16px;
+  padding:22px 16px;text-align:center;transition:.3s var(--ease);height:100%}
+.fsi:hover{border-color:var(--a);transform:translateY(-4px);box-shadow:var(--sh1)}
+.fico{width:48px;height:48px;border-radius:13px;display:flex;
+  align-items:center;justify-content:center;margin:0 auto 13px;font-size:1.3rem}
+.ftit{font-size:.9rem;font-weight:800;color:var(--ink);margin-bottom:5px}
+.fdesc{font-size:var(--fs-xs);color:var(--ink3);line-height:1.55}
+
+/* ═══ AI / CHARTS ═══ */
+.ai-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:800px){.ai-grid{grid-template-columns:1fr}}
+.ch{height:270px;position:relative}
+
+/* ═══ SCROLL REVEAL (改进1) ═══ */
+.rv{opacity:0;transform:translateY(24px);
+  transition:opacity .65s var(--ease),transform .65s var(--ease)}
+.rv.vis{opacity:1;transform:translateY(0)}
+.d1{transition-delay:.08s} .d2{transition-delay:.16s}
+.d3{transition-delay:.24s} .d4{transition-delay:.32s}
+
+
+/* ── CAMERA STYLES ── */
+.cam-mode-btn{padding:5px 12px;border-radius:6px;font-size:12px;font-weight:700;
+  background:rgba(255,255,255,.1);color:rgba(255,255,255,.5);border:none;
+  cursor:pointer;transition:.15s;font-family:inherit}
+.cam-mode-btn.on{background:var(--a);color:#fff}
+.cam-mode-btn:hover{background:rgba(255,255,255,.2);color:#fff}
+.cam-thumb{background:#fff;border:1px solid var(--bdr);border-radius:14px;overflow:hidden;cursor:pointer;transition:.2s}
+.cam-thumb:hover{border-color:var(--a);transform:translateY(-2px)}
+.cam-th-hd{display:flex;justify-content:space-between;align-items:center;
+  padding:10px 14px;font-size:12px;font-weight:700;color:var(--ink2);
+  border-bottom:1px solid var(--bg2)}
+.cam-dot{width:8px;height:8px;border-radius:50%}
+.cam-dot.ok{background:var(--g)} .cam-dot.warn{background:var(--w)}
+.cam-th-body{height:100px;background:#1A2433;position:relative;overflow:hidden}
+.cam-th-ft{padding:8px 14px;font-size:11px;font-weight:600;color:var(--ink3)}
+.cam-stat{font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;
+  background:var(--bg2);color:var(--ink3);border:1px solid var(--bdr)}
+.cam-stat.ok{background:var(--gbg);color:var(--g);border-color:var(--g)}
+.cam-stat.warn{background:var(--wbg);color:var(--w);border-color:var(--w)}
+.cam-stat.danger{background:var(--rbg);color:var(--r);border-color:var(--r)}
+/* ── VITALS STYLES ── */
+.wsel-btn{padding:9px 18px;border:1.5px solid var(--bdr);border-radius:22px;
+  font-size:13px;font-weight:700;background:#fff;color:var(--ink2);
+  cursor:pointer;transition:.18s;font-family:inherit}
+.wsel-btn:hover{border-color:var(--a);color:var(--a)}
+.wsel-btn.on{border-color:var(--a);background:var(--abg);color:var(--a)}
+.wsel-btn.el{border-color:var(--amb);color:var(--amb)}
+.wsel-btn.el.on{background:var(--ambbg);border-color:var(--amb)}
+.vgauge{background:#fff;border:1px solid var(--bdr);border-radius:14px;padding:16px 18px}
+.vg-lbl{font-size:11px;font-weight:700;color:var(--ink4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.vg-val{font-size:1.8rem;font-weight:900;color:var(--ink);line-height:1;display:inline;font-variant-numeric:tabular-nums}
+.vg-unit{font-size:13px;font-weight:600;color:var(--ink4);margin-left:4px}
+.vg-bar{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;margin:8px 0 4px}
+.vg-fill{height:100%;border-radius:3px;transition:width .6s var(--ease)}
+.vg-range{font-size:11px;color:var(--ink5);font-family:monospace}
+/* ── HAZARD STYLES ── */
+.hz-card{background:#fff;border:1px solid var(--bdr);border-radius:16px;
+  padding:22px;text-align:center;transition:.3s var(--ease)}
+.hz-card:hover{transform:translateY(-3px);box-shadow:var(--sh1)}
+.hz-ico{font-size:2rem;margin-bottom:10px}
+.hz-name{font-size:13px;font-weight:700;color:var(--ink3);margin-bottom:8px}
+.hz-val{font-size:2.4rem;font-weight:900;color:var(--ink);line-height:1;
+  display:inline;font-variant-numeric:tabular-nums}
+.hz-unit{font-size:13px;font-weight:600;color:var(--ink4);margin-left:3px}
+.hz-bar{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;margin:12px 0 8px}
+.hz-fill{height:100%;border-radius:4px;transition:width .8s var(--ease)}
+.hz-status{font-size:12px;font-weight:800;padding:4px 12px;border-radius:20px;
+  display:inline-block;margin-bottom:6px}
+.hz-status.ok{background:var(--gbg);color:var(--g)}
+.hz-status.warn{background:var(--wbg);color:var(--w)}
+.hz-status.danger{background:var(--rbg);color:var(--r)}
+.hz-limit{font-size:11px;color:var(--ink5);font-family:monospace}
+
+/* ═══ FOOTER ═══ */
+footer{background:var(--ink);color:#fff;padding:42px 0;margin-top:60px}
+.ft{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+.ft-logo{font-size:1rem;font-weight:800;display:flex;align-items:center;gap:10px}
+.ft-m{width:32px;height:32px;background:var(--a);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:900;color:#fff}
+.ft-links{display:flex;gap:20px;list-style:none}
+.ft-links a{color:rgba(255,255,255,.45);font-size:var(--fs-sm);transition:.15s}
+.ft-links a:hover{color:#fff}
+.ft-copy{font-size:var(--fs-xs);color:rgba(255,255,255,.3);font-family:var(--mono)}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="bell">
+    <button class="bell-btn" aria-label="경보 알림">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    </button>
+    <span class="bell-cnt" id="bCnt">3</span>
+    <div class="bell-drop">
+      <div class="bell-item"><div class="bdot r"></div>
+        <div><div class="bell-title" data-k="a1t">안전모 미착용 감지</div>
+             <div class="bell-sub" data-k="a1s">이민준 · C-1구역 · 방금 전</div></div></div>
+      <div class="bell-item"><div class="bdot w"></div>
+        <div><div class="bell-title" data-k="a2t">고온 환경 주의</div>
+             <div class="bell-sub" data-k="a2s">압착 A구역 · 38.2°C · 2분 전</div></div></div>
+      <div class="bell-item"><div class="bdot w"></div>
+        <div><div class="bell-title" data-k="a3t">피로도 초과 (55세+)</div>
+             <div class="bell-sub" data-k="a3s">정영숙(57) · B-1구역 · 5분 전</div></div></div>
+    </div>
+  </div>
+  <div class="lang-pill">
+    <button onclick="setL('ko')" id="btn-ko" class="on">한</button>
+    <button onclick="setL('zh')" id="btn-zh">中</button>
+    <button onclick="setL('en')" id="btn-en">EN</button>
+  </div>
+</div>
+
+<!-- NAV -->
+
+<div class="bg-geo" aria-hidden="true">
+<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <pattern id="grid" width="80" height="80" patternUnits="userSpaceOnUse">
+      <path d="M 80 0 L 0 0 0 80" fill="none" stroke="rgba(49,130,246,.055)" stroke-width="0.8"/>
+    </pattern>
+    <pattern id="dots" width="40" height="40" patternUnits="userSpaceOnUse">
+      <circle cx="20" cy="20" r="1.2" fill="rgba(49,130,246,.08)"/>
+    </pattern>
+  </defs>
+  <!-- grid lines -->
+  <rect width="100%" height="100%" fill="url(#grid)"/>
+  <!-- dot layer -->
+  <rect width="100%" height="100%" fill="url(#dots)"/>
+  <!-- large geometric shapes - top right -->
+  <polygon points="900,0 1400,0 1400,420 1050,0" fill="rgba(49,130,246,.025)" stroke="rgba(49,130,246,.06)" stroke-width="0.8"/>
+  <polygon points="1100,0 1400,200 1400,0" fill="rgba(49,130,246,.04)" stroke="rgba(49,130,246,.08)" stroke-width="0.8"/>
+  <!-- bottom left -->
+  <polygon points="0,600 280,900 0,900" fill="rgba(22,198,140,.025)" stroke="rgba(22,198,140,.06)" stroke-width="0.8"/>
+  <polygon points="0,750 180,1000 0,1000" fill="rgba(49,130,246,.03)" stroke="rgba(49,130,246,.07)" stroke-width="0.8"/>
+  <!-- center accent lines -->
+  <line x1="0" y1="320" x2="420" y2="0" stroke="rgba(49,130,246,.04)" stroke-width="1"/>
+  <line x1="0" y1="500" x2="620" y2="0" stroke="rgba(49,130,246,.03)" stroke-width="0.8"/>
+  <!-- right side lines -->
+  <line x1="100%" y1="200" x2="800" y2="100%" stroke="rgba(49,130,246,.04)" stroke-width="1"/>
+  <line x1="100%" y1="400" x2="1000" y2="100%" stroke="rgba(49,130,246,.025)" stroke-width="0.8"/>
+  <!-- hexagon hints -->
+  <polygon points="120,180 160,158 200,180 200,224 160,246 120,224" fill="none" stroke="rgba(49,130,246,.07)" stroke-width="0.8"/>
+  <polygon points="1200,300 1240,278 1280,300 1280,344 1240,366 1200,344" fill="none" stroke="rgba(49,130,246,.06)" stroke-width="0.8"/>
+  <polygon points="60,500 88,484 116,500 116,532 88,548 60,532" fill="none" stroke="rgba(22,198,140,.07)" stroke-width="0.8"/>
+  <!-- small accent triangles -->
+  <polygon points="300,60 330,100 270,100" fill="rgba(49,130,246,.04)" stroke="rgba(49,130,246,.07)" stroke-width="0.7"/>
+  <polygon points="1100,500 1130,540 1070,540" fill="rgba(49,130,246,.03)" stroke="rgba(49,130,246,.06)" stroke-width="0.7"/>
+</svg>
+</div>
+
+
+<nav id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top">
+      <div class="logo-m">GYY</div>
+      <span>GUOYUNYUN <small style="font-size:.65rem;color:var(--ink4);font-weight:600;margin-left:2px">202317100</small></span>
+    </a>
+    <ul class="nav-list">
+      <li class="ni"><a href="#register" data-k="nv1">근로자 등록</a>
+        <div class="ndrop">
+          <a href="#register" class="nda"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg><span data-k="nd11">신규 등록</span></a>
+          <a href="#monitor" class="nda"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span data-k="nd12">근로자 목록</span></a>
+          <a href="#elderly" class="nda"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg><span data-k="nd13">고령 전용</span><span class="ndnew" data-k="ndnew">신규</span></a>
+        </div></li>
+      <li class="ni"><a href="#realtime" data-k="nv2">실시간 모니터링</a>
+        <div class="ndrop">
+          <a href="#realtime" class="nda"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span data-k="nd21">생체신호</span></a>
+          <a href="#monitor" class="nda"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span data-k="nd22">인원 위치</span></a>
+          <a href="#alerts" class="nda"><svg viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/></svg><span data-k="nd23">경보 센터</span></a>
+        </div></li>
+      <li class="ni"><a href="#elderly" data-k="nv3">고령 근로자</a>
+        <div class="ndrop">
+          <a href="#elderly" class="nda"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg><span data-k="nd31">전용 대시보드</span><span class="ndnew" data-k="nd1st">세계 최초</span></a>
+          <a href="#elderly" class="nda"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span data-k="nd32">위험 분석</span></a>
+        </div></li>
+      <li class="ni"><a href="#ai" data-k="nv4">AI 예측</a>
+        <div class="ndrop">
+          <a href="#ai" class="nda"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span data-k="nd41">재해예측 AI</span></a>
+          <a href="#alerts" class="nda"><svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg><span data-k="nd42">위험 처리 흐름</span></a>
+        </div></li>
+    </ul>
+    <a href="#register" class="nav-cta" data-k="nvct">근로자 등록하기</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="top" class="hero">
+  <div class="wrap">
+    <div class="hero-content">
+      <div class="eyebrow">
+        <span class="badge" data-k="hbd">GUOYUNYUN · 202317100</span>
+        <div class="ldot"></div>
+        <span data-k="hey">실시간 모니터링 중</span>
+      </div>
+      <h1><span data-k="hh1">산업안전 · 건강을</span><br><span class="acc" data-k="hh2">하나의 플랫폼으로</span></h1>
+      <p class="hero-sub" data-k="hsb">자동 등록 · 실시간 생체 모니터링 · 고령 근로자 전용 대시보드(세계 최초) · AI 재해예측 · 119 자동연계. 근로자 한 명도 놓치지 않습니다.</p>
+      <div class="btns">
+        <a href="#register" class="btn btn-p" data-k="hb1">근로자 등록 시작</a>
+        <a href="#monitor" class="btn btn-g" data-k="hb2">실시간 현황 보기 →</a>
+      </div>
+      <div class="hstats">
+        <div class="hstat rv"><div class="num" id="c1" data-to="50195" data-sx="명">0</div><div class="lbl" data-k="hs1">누적 등록 근로자</div></div>
+        <div class="hstat rv d1"><div class="num" id="c2" data-to="26" data-sx="개">0</div><div class="lbl" data-k="hs2">통합 기능 모듈</div></div>
+        <div class="hstat rv d2"><div class="num" id="c3" data-to="95" data-sx="%">0</div><div class="lbl" data-k="hs3">위험행동 인식 정확도</div></div>
+        <div class="hstat rv d3"><div class="num" id="c4" data-to="1" data-sx="s">0</div><div class="lbl" data-k="hs4">데이터 전송 지연</div></div>
+      </div>
+    </div>
+
+    </div>
+  <div class="hero-scr"><span>SCROLL</span><i></i></div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker"><div class="ticker-inner" id="ticker"></div></div>
+
+<!-- REGISTER -->
+<section id="register">
+  <div class="wrap">
+    <div class="sec-hd rv">
+      <div class="sec-lbl" data-k="sl1">Module A · 근로자 등록</div>
+      <h2 class="sec-title"><span data-k="st1a">이름 입력 한 번으로</span><br><span class="acc" data-k="st1b">자동 등록 완료</span></h2>
+      <p class="sec-desc" data-k="sd1">55세 이상은 등록 즉시 고령 근로자로 자동 분류됩니다. LocalStorage 저장으로 새로고침 후에도 데이터가 유지됩니다.</p>
+    </div>
+    <div class="reg-layout">
+      <div class="reg-card rv">
+        <div class="form-title" data-k="ftt">신규 근로자 등록</div>
+        <div class="form-sub" data-k="fsb">* 표시 항목은 필수입니다. 등록 즉시 실시간 목록에 반영됩니다.</div>
+        <div class="frow"><label class="flbl" data-k="fl1">이름 *</label>
+          <input class="fi" id="fn" type="text" data-ph="ph1" placeholder="홍길동"></div>
+        <div class="frow2">
+          <div><label class="flbl" data-k="fl2">나이 *</label>
+            <input class="fi" id="fa" type="number" min="18" max="80" placeholder="58" oninput="chkA()">
+            <div class="age-w" id="aw" data-k="aw">⚠ 55세 이상 — 고령 근로자로 자동 분류</div></div>
+          <div><label class="flbl" data-k="fl3">공종 *</label>
+            <select class="fsel" id="fr">
+              <option value="" data-k="r0">선택</option>
+              <option value="압착" data-k="r1">압착</option><option value="조립" data-k="r2">조립</option>
+              <option value="용접" data-k="r3">용접</option><option value="도장" data-k="r4">도장</option>
+              <option value="검사" data-k="r5">검사</option><option value="운반" data-k="r6">운반</option>
+              <option value="설비" data-k="r7">설비</option>
+            </select></div>
+        </div>
+        <div class="frow2">
+          <div><label class="flbl" data-k="fl4">근무반</label>
+            <select class="fsel" id="fs">
+              <option value="주간" data-k="s1">주간</option>
+              <option value="야간" data-k="s2">야간</option>
+              <option value="교대" data-k="s3">교대</option>
+            </select></div>
+          <div><label class="flbl" data-k="fl5">ID / 연락처</label>
+            <input class="fi" id="fi" type="text" placeholder="742135678"></div>
+        </div>
+        <button class="sub-btn" onclick="doReg()" data-k="rb">등록하기</button>
+      </div>
+      <div class="recent-card rv d1">
+        <div class="recent-hd">
+          <span data-k="rct">최근 등록</span>
+          <span class="live-bdg"><div class="ldot"></div><span data-k="lv">실시간</span></span>
+        </div>
+        <div id="recList"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MONITOR -->
+<section id="monitor" style="background:linear-gradient(135deg,#0D1B2A 0%,#142035 60%,#0A1628 100%);position:relative">
+  <div class="wrap">
+    <div class="sec-hd rv" style="color:#fff">
+      <div class="sec-lbl" style="color:var(--a-light)" data-k="sl2">Module B · 실시간 모니터링</div>
+      <h2 class="sec-title" style="color:#fff"><span data-k="st2a">모든 근로자를</span><br><span class="acc" data-k="st2b">한눈에</span></h2>
+      <p class="sec-desc" style="color:rgba(255,255,255,.65)" data-k="sd2">심박수·혈중산소·체온·피로도를 실시간으로. <strong>행에 마우스를 올리면</strong> 건강 데이터 툴팁이 나타납니다.</p>
+    </div>
+    <div class="mon-grid rv">
+      <div class="mst"><div class="mnum" style="color:var(--a)" id="ms1">0</div><div class="mlbl" data-k="ml1">전체 근로자</div></div>
+      <div class="mst"><div class="mnum" style="color:var(--g)" id="ms2">0</div><div class="mlbl" data-k="ml2">온라인</div></div>
+      <div class="mst"><div class="mnum" style="color:var(--amb)" id="ms3">0</div><div class="mlbl" data-k="ml3">고령(55+)</div></div>
+      <div class="mst"><div class="mnum" style="color:var(--r)" id="ms4">0</div><div class="mlbl" data-k="ml4">경보 발생</div></div>
+    </div>
+    <div class="wt rv d1">
+      <div class="wt-bar">
+        <div class="wsrch">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="ws" data-ph="ph2" placeholder="이름, ID, 공종 검색…" oninput="rtbl()">
+        </div>
+        <button class="fb on" id="fb-all" onclick="setF('all')" data-k="fa">전체</button>
+        <button class="fb" id="fb-el" onclick="setF('elderly')" data-k="fe">55세+</button>
+        <button class="fb" id="fb-al" onclick="setF('alert')" data-k="fal">경보</button>
+      </div>
+      <div class="wt-hd">
+        <span class="wth"></span><span class="wth" data-k="c1">근로자</span>
+        <span class="wth" data-k="c2">상태</span><span class="wth" data-k="c3">심박수</span>
+        <span class="wth" data-k="c4">혈중산소</span><span class="wth" data-k="c5">체온</span>
+        <span class="wth" data-k="c6">PPE</span><span class="wth" data-k="c7">태그</span>
+      </div>
+      <div class="wt-body" id="wtBody"></div>
+      <div class="wt-foot"><span id="wtCnt"></span>
+        <span style="color:var(--a);font-weight:700">SHine-K · 실시간 동기화</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ELDERLY -->
+<section id="elderly">
+  <div class="wrap">
+    <div class="sec-hd rv">
+      <div class="sec-lbl" data-k="sl3">Module C · 고령근로자 전용 — 세계 최초</div>
+      <h2 class="sec-title"><span class="acc" data-k="st3a">55세+</span> <span data-k="st3b">근로자를</span><br><span data-k="st3c">따로 분류하고 집중 관리</span></h2>
+      <p class="sec-desc" data-k="sd3">전 세계 어떤 플랫폼도 구현하지 않은 고령 근로자 전용 안전 모듈. 근골격계·열스트레스·반응시간 세 가지 전용 지표를 추적합니다.</p>
+    </div>
+    <div class="el-kpi rv">
+      <div class="kpi kri"><div class="kico">🦴</div><div class="knum" style="color:var(--r)">72</div><div class="klbl" data-k="kl1">근골격계 위험 지수</div><div class="kbar"><div class="kfill" style="width:72%;background:var(--r)"></div></div></div>
+      <div class="kpi kwa"><div class="kico">🌡</div><div class="knum" style="color:var(--w)">58</div><div class="klbl" data-k="kl2">열스트레스 지수</div><div class="kbar"><div class="kfill" style="width:58%;background:var(--w)"></div></div></div>
+      <div class="kpi kin"><div class="kico">⚡</div><div class="knum" style="color:var(--a)">+42</div><div class="klbl" data-k="kl3">반응시간 지연 (ms)</div><div class="kbar"><div class="kfill" style="width:42%;background:var(--a)"></div></div></div>
+    </div>
+    <div class="el-list rv d1">
+      <div class="el-hd">
+        <span></span><span class="elth" data-k="ec1">근로자</span><span class="elth" data-k="ec2">나이</span>
+        <span class="elth" data-k="ec3">상태</span><span class="elth" data-k="ec4">위험도</span><span class="elth" data-k="ec5">권장사항</span>
+      </div>
+      <div id="elBody"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ALERTS -->
+<section id="alerts" class="bg2">
+  <div class="wrap">
+    <div class="sec-hd rv">
+      <div class="sec-lbl" data-k="sl4">Module D · 위험 감지 · 경보</div>
+      <h2 class="sec-title"><span data-k="st4a">위험 발생 즉시</span><br><span class="acc" data-k="st4b">자동 경보 · 119 연계</span></h2>
+      <p class="sec-desc" data-k="sd4">위험행동 인식 정확률 ≥95%, 데이터 전송 지연 ≤1초. 넘어짐 감지 시 119 자동 연계됩니다.</p>
+    </div>
+    <div class="al-grid rv">
+      <div class="alc dan">
+        <span class="al-lvl lvd" data-k="lvd">위험</span>
+        <div class="al-t" data-k="at1">안전모 미착용 — C-1구역</div>
+        <div class="al-d" data-k="ad1">용접 작업 중 이민준(31세) 안전모 미착용 감지. AI 위험행동 인식 정확률 ≥95%.</div>
+        <div class="al-m"><span>📍 C-1구역</span><span>⏱ 방금 전</span><span>🎥 카메라 #7</span></div>
+        <button class="sos" data-k="sos">📞 119 연동 중…</button>
+      </div>
+      <div class="alc wrn">
+        <span class="al-lvl lvw" data-k="lvw">주의</span>
+        <div class="al-t" data-k="at2">고온 환경 주의 — 압착 A구역</div>
+        <div class="al-d" data-k="ad2">38.2°C 초과. 고령 근로자 2명 열스트레스 위험 구간. 열화상 + 웨어러블 복합 감지.</div>
+        <div class="al-m"><span>📍 압착 A구역</span><span>⏱ 2분 전</span><span>🌡 38.2°C</span></div>
+      </div>
+      <div class="alc wrn">
+        <span class="al-lvl lvw" data-k="lvw">주의</span>
+        <div class="al-t" data-k="at3">피로도 초과 (55세+) — B-1구역</div>
+        <div class="al-d" data-k="ad3">정영숙(57세) 피로 지수 87% 도달. 고령 근로자 피로 임계값 초과 즉시 경보.</div>
+        <div class="al-m"><span>📍 B-1구역</span><span>⏱ 5분 전</span><span>😴 피로 87%</span></div>
+      </div>
+      <div class="alc">
+        <span class="al-lvl lvo" data-k="lvo">정상</span>
+        <div class="al-t" data-k="at4">PPE 전체 정상 — B구역</div>
+        <div class="al-d" data-k="ad4">B구역 전 근로자 안전모·보안경·조끼 완전 착용 확인. 인식 정확률 ≥95%.</div>
+        <div class="al-m"><span>📍 B구역</span><span>✅ PPE 100%</span></div>
+      </div>
+    </div>
+    <div class="rv" style="margin-top:48px">
+      <div class="sec-lbl" data-k="fll">감지 → 판단 → 행동 → 기록</div>
+      <div class="flow" style="gap:16px;margin-top:20px">
+        <div class="fs"><div class="fsi"><div class="fico" style="background:var(--abg)">🎥</div><div class="ftit">Sense</div><div class="fdesc" data-k="fd1">AI 카메라·웨어러블·열화상으로 위험 감지</div></div></div>
+        <div class="fs"><div class="fsi"><div class="fico" style="background:var(--pbg)">🧠</div><div class="ftit">Judge</div><div class="fdesc" data-k="fd2">AI가 위험 수준 판별 (정상/주의/위험)</div></div></div>
+        <div class="fs"><div class="fsi"><div class="fico" style="background:var(--rbg)">🚨</div><div class="ftit">Act</div><div class="fdesc" data-k="fd3">관리자 알림 · 119 자동연계 · 작업 중지</div></div></div>
+        <div class="fs"><div class="fsi"><div class="fico" style="background:var(--gbg)">📋</div><div class="ftit">Connect</div><div class="fdesc" data-k="fd4">사고 기록 · 원인 분석 · 재발 방지 저장</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- MODULE E+F+H: UNIFIED REALTIME DEMO -->
+<section id="realtime">
+  <div class="wrap">
+    <div class="sec-hd rv">
+      <div class="sec-lbl" data-k="rtsl">Module E+F+H · 실시간 통합 데모</div>
+      <h2 class="sec-title"><span data-k="rtst1">카메라·생체신호·위험원을</span><br><span class="acc" data-k="rtst2">한 화면에서 실시간 연동</span></h2>
+      <p class="sec-desc" data-k="rtsd">가시광·적외선·열화상 전환 / 근로자별 생체신호 실시간 그래프 / 위험원 센서 수치가 모두 동기화됩니다.</p>
+    </div>
+
+    <!-- TAB BAR -->
+    <div class="demo-tabs rv">
+      <button class="demo-tab on" id="dt-cam" onclick="demoTab('cam')" data-k="dt1">📷 카메라</button>
+      <button class="demo-tab" id="dt-vital" onclick="demoTab('vital')" data-k="dt2">❤ 생체신호</button>
+      <button class="demo-tab" id="dt-hazard" onclick="demoTab('hazard')" data-k="dt3">☣ 위험원</button>
+    </div>
+
+    <!-- PANEL: CAMERA (시뮬레이션) -->
+    <div class="demo-panel rv d1" id="dp-cam">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+
+        <!-- 메인 피드 -->
+        <div style="border:1px solid var(--bdr);border-radius:16px;overflow:hidden">
+          <div style="background:#0D1B2A;padding:12px 16px">
+            <!-- 模拟/真实 切换子标签 -->
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="width:8px;height:8px;border-radius:50%;background:#F04452;animation:lp 1s infinite;display:inline-block"></span>
+                <span style="font-size:13px;font-weight:700;color:#fff" id="camLiveLabel">● 시뮬레이션 — 구역 #1</span>
+              </div>
+              <div style="display:flex;gap:4px">
+                <button class="cam-sub-btn on" id="csb-sim" onclick="camSubTab('sim')">🎬 시뮬</button>
+                <button class="cam-sub-btn" id="csb-real" onclick="camSubTab('real')">📷 실제</button>
+              </div>
+            </div>
+            <!-- mode buttons row 1 -->
+            <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px">
+              <button class="cam-mode-btn on" id="cm-vis"  onclick="setCamMode('vis')"  data-k="mvis">가시광</button>
+              <button class="cam-mode-btn"    id="cm-ir"   onclick="setCamMode('ir')"   data-k="mir">적외선</button>
+              <button class="cam-mode-btn"    id="cm-th"   onclick="setCamMode('th')"   data-k="mth">열화상</button>
+              <button class="cam-mode-btn"    id="cm-ext"  onclick="setCamMode('ext')"  data-k="mext">외부시각</button>
+              <button class="cam-mode-btn"    id="cm-3d"   onclick="setCamMode('3d')"   data-k="m3d">3D시각</button>
+              <button class="cam-mode-btn"    id="cm-360"  onclick="setCamMode('360')"  data-k="m360">360°운대</button>
+              <button class="cam-mode-btn"    id="cm-ppe"  onclick="setCamMode('ppe')"  data-k="mppe">PPE감지</button>
+              <button class="cam-mode-btn"    id="cm-edge" onclick="setCamMode('edge')" data-k="medge">윤곽선</button>
+            </div>
+            <!-- spec tags -->
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <span style="font-size:10px;font-family:monospace;color:rgba(255,255,255,.4);background:rgba(255,255,255,.07);padding:2px 8px;border-radius:4px">1920×1080</span>
+              <span style="font-size:10px;font-family:monospace;color:rgba(255,255,255,.4);background:rgba(255,255,255,.07);padding:2px 8px;border-radius:4px" data-k="mvis">가시광</span>
+              <span style="font-size:10px;font-family:monospace;color:rgba(255,255,255,.4);background:rgba(255,255,255,.07);padding:2px 8px;border-radius:4px" data-k="mext">외부시각</span>
+              <span style="font-size:10px;font-family:monospace;color:rgba(255,255,255,.4);background:rgba(255,255,255,.07);padding:2px 8px;border-radius:4px" data-k="m3d">3D시각</span>
+              <span style="font-size:10px;font-family:monospace;color:rgba(255,255,255,.4);background:rgba(255,255,255,.07);padding:2px 8px;border-radius:4px" data-k="m360">360°운대</span>
+              <span style="font-size:10px;font-family:monospace;color:rgba(255,255,255,.4);background:rgba(255,255,255,.07);padding:2px 8px;border-radius:4px" data-k="mppe">PPE감지</span>
+              <span style="font-size:10px;font-family:monospace;color:rgba(255,255,255,.4);background:rgba(255,255,255,.07);padding:2px 8px;border-radius:4px" data-k="mml">다층시각</span>
+            </div>
+          </div>
+          <!-- canvas feed -->
+          <div style="position:relative;background:#111;aspect-ratio:16/9" id="camViewport">
+            <!-- SIM layer -->
+            <canvas id="camCanvas" style="position:absolute;inset:0;width:100%;height:100%;display:block"></canvas>
+            <!-- REAL layer: video + filter canvas -->
+            <div id="realLayer" style="display:none;position:absolute;inset:0">
+              <video id="camVideo" autoplay playsinline muted
+                style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></video>
+              <canvas id="camRealCanvas"
+                style="position:absolute;inset:0;width:100%;height:100%;display:block"></canvas>
+            </div>
+            <!-- start screen (real mode) -->
+            <div id="camStartScreen" style="display:none;position:absolute;inset:0;
+              background:#0D1B2A;display:none;flex-direction:column;align-items:center;
+              justify-content:center;gap:12px;z-index:10">
+              <div style="font-size:2.5rem">📷</div>
+              <div style="font-size:14px;font-weight:700;color:#fff" data-k="camopen">카메라 켜기</div>
+              <div style="font-size:12px;color:#5A7FA8;text-align:center;max-width:220px" data-k="camsd">클릭하면 브라우저 카메라 권한을 요청합니다</div>
+              <button onclick="startRealCam()" style="padding:10px 28px;background:var(--a);color:#fff;
+                border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">
+                <span data-k="camopen">카메라 켜기</span>
+              </button>
+              <div id="cam-err" style="display:none;color:#FF5A5A;font-size:12px;text-align:center;max-width:220px" data-k="camerr">
+                카메라 접근 거부. 브라우저 설정에서 허용해주세요.
+              </div>
+            </div>
+            <!-- bottom bar -->
+            <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(13,27,42,.78);
+              padding:6px 12px;display:flex;gap:14px;font-size:11px;font-family:monospace;color:#8AB4D8;z-index:5">
+              <span id="camTime">00:00:00</span>
+              <span id="camFpsLbl">FPS: 30</span>
+              <span>1920×1080</span>
+              <span id="camRes" data-k="crvs">가시광 모드</span>
+            </div>
+          </div>
+          <!-- status bar -->
+          <div style="padding:11px 16px;border-top:1px solid var(--bg2);display:flex;gap:8px;flex-wrap:wrap">
+            <span class="cam-stat ok"  id="cs-ppe"  data-k="cppe">⛑ PPE 정상</span>
+            <span class="cam-stat ok"  id="cs-zone">📍 A</span>
+            <span class="cam-stat warn" id="cs-heat" data-k="cheat">🌡 체온 37.8°C</span>
+            <span class="cam-stat"     id="cs-auth" data-k="cauth">🔓 인가 근로자</span>
+          </div>
+        </div>
+
+        <!-- 4개 구역 썸네일 -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="cam-thumb" onclick="switchZone(1)">
+            <div class="cam-th-hd"><span id="z1lbl">1 號營地 · A 區</span><span class="cam-dot ok" id="z1dot"></span></div>
+            <div class="cam-th-body"><canvas id="ct1" style="width:100%;height:100%;display:block"></canvas></div>
+            <div class="cam-th-ft" id="z1ft">4위 서명 근로자</div>
+          </div>
+          <div class="cam-thumb" onclick="switchZone(2)">
+            <div class="cam-th-hd"><span id="z2lbl">2 號營地 · B 區</span><span class="cam-dot warn" id="z2dot"></span></div>
+            <div class="cam-th-body"><canvas id="ct2" style="width:100%;height:100%;display:block"></canvas></div>
+            <div class="cam-th-ft" id="z2ft" style="color:var(--w)">▲ 到處都是個人防護裝備</div>
+          </div>
+          <div class="cam-thumb" onclick="switchZone(3)">
+            <div class="cam-th-hd"><span id="z3lbl">3 號營地 · C 區</span><span class="cam-dot" style="background:var(--r);animation:lp 1s infinite" id="z3dot"></span></div>
+            <div class="cam-th-body"><canvas id="ct3" style="width:100%;height:100%;display:block"></canvas></div>
+            <div class="cam-th-ft" id="z3ft" style="color:var(--r)">🔥 검측 위험행위</div>
+          </div>
+          <div class="cam-thumb" onclick="switchZone(4)">
+            <div class="cam-th-hd"><span id="z4lbl">4 號營地 · D 區</span><span class="cam-dot ok" id="z4dot"></span></div>
+            <div class="cam-th-body"><canvas id="ct4" style="width:100%;height:100%;display:block"></canvas></div>
+            <div class="cam-th-ft" id="z4ft">2위 서명 근로자</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANEL: VITALS -->
+    <div class="demo-panel rv d1" id="dp-vital" style="display:none">
+      <div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap" id="workerSelector"></div>
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px">
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+            <div>
+              <div style="font-size:1rem;font-weight:800;margin-bottom:3px" id="vitalName">홍길동 (58세)</div>
+              <div style="font-size:13px;color:var(--ink3)" data-k="vdevice">웨어러블 연동 중 — Garmin Fenix</div>
+            </div>
+            <span class="live-bdg"><div class="ldot"></div><span data-k="lv">실시간</span></span>
+          </div>
+          <div style="position:relative;height:150px;margin-bottom:6px">
+            <canvas id="hrChart" role="img" aria-label="심박수 라이브 그래프"></canvas>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink4);font-family:monospace">
+            <span>-30s</span><span>-20s</span><span>-10s</span><span data-k="vnow">지금</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="vgauge"><div class="vg-lbl" data-k="vghr">심박수</div><span class="vg-val" id="vv-hr">88</span><span class="vg-unit">bpm</span><div class="vg-bar"><div class="vg-fill" id="vf-hr" style="width:59%;background:var(--w)"></div></div><div class="vg-range">40 — 120</div></div>
+          <div class="vgauge"><div class="vg-lbl" data-k="vgspo2">혈중산소</div><span class="vg-val" id="vv-spo2">96</span><span class="vg-unit">%</span><div class="vg-bar"><div class="vg-fill" id="vf-spo2" style="width:96%;background:var(--g)"></div></div><div class="vg-range">90 — 100</div></div>
+          <div class="vgauge"><div class="vg-lbl" data-k="vgtemp">체온</div><span class="vg-val" id="vv-temp">37.2</span><span class="vg-unit">°C</span><div class="vg-bar"><div class="vg-fill" id="vf-temp" style="width:55%;background:var(--w)"></div></div><div class="vg-range">36 — 38.5</div></div>
+          <div class="vgauge"><div class="vg-lbl" data-k="vgfat">피로도</div><span class="vg-val" id="vv-fat">62</span><span class="vg-unit">%</span><div class="vg-bar"><div class="vg-fill" id="vf-fat" style="width:62%;background:var(--w)"></div></div><div class="vg-range">0 — 100</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANEL: HAZARD -->
+    <div class="demo-panel rv d1" id="dp-hazard" style="display:none">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px">
+        <div class="hz-card"><div class="hz-ico">🌡</div><div class="hz-name" data-k="hztemp">작업장 온도</div><span class="hz-val" id="hvv-temp">38.2</span><span style="font-size:13px;color:var(--ink4);margin-left:3px">°C</span><div class="hz-bar"><div class="hz-fill" id="hf-temp" style="width:76%;background:var(--r)"></div></div><div class="hz-status danger" data-k="hzover">임계값 초과</div><div class="hz-limit" data-k="hzlim1">안전 기준 ≤37°C</div></div>
+        <div class="hz-card"><div class="hz-ico">☣</div><div class="hz-name" data-k="hzco">일산화탄소 (CO)</div><span class="hz-val" id="hvv-co">12</span><span style="font-size:13px;color:var(--ink4);margin-left:3px">ppm</span><div class="hz-bar"><div class="hz-fill" id="hf-co" style="width:24%;background:var(--g)"></div></div><div class="hz-status ok" data-k="hznorm">정상 범위</div><div class="hz-limit" data-k="hzlim2">안전 기준 ≤25ppm</div></div>
+        <div class="hz-card"><div class="hz-ico">💨</div><div class="hz-name" data-k="hzdust">분진 농도</div><span class="hz-val" id="hvv-dust">48</span><span style="font-size:13px;color:var(--ink4);margin-left:3px">μg/m³</span><div class="hz-bar"><div class="hz-fill" id="hf-dust" style="width:64%;background:var(--w)"></div></div><div class="hz-status warn" data-k="hzwarn">주의 구간</div><div class="hz-limit" data-k="hzlim3">안전 기준 ≤50μg/m³</div></div>
+      </div>
+      <div class="card">
+        <div style="font-size:1rem;font-weight:800;margin-bottom:5px" data-k="hzct">최근 30분 위험원 추이</div>
+        <div style="font-size:13px;color:var(--ink3);margin-bottom:16px" data-k="hzcs">붉은 음영 = 임계값 초과 구간</div>
+        <div style="height:200px;position:relative"><canvas id="hzChart" role="img" aria-label="위험원 30분 추이 차트"></canvas></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- FEATURES: 26개 모듈 전체 -->
+<section id="features" class="bg2">
+  <div class="wrap">
+    <div class="sec-hd rv">
+      <div class="sec-lbl" data-k="fsl">26개 통합 기능 모듈</div>
+      <h2 class="sec-title"><span data-k="fst1">경쟁사가 없는</span><br><span class="acc" data-k="fst2">전방위 산업안전 플랫폼</span></h2>
+      <p class="sec-desc" data-k="fsd">국내외 6개 플랫폼 조사 결과, 고령근로자 전용 기능은 0개. SHine-K는 세계 최초로 이를 구현합니다.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px" class="rv stagger-grid" id="featGrid">
+      <!-- JS rendered -->
+    </div>
+  </div>
+</section>
+
+<!-- AI -->
+<section id="ai">
+  <div class="wrap">
+    <div class="sec-hd rv">
+      <div class="sec-lbl" data-k="sl5">Module G · AI 예측 · 데이터 시각화</div>
+      <h2 class="sec-title"><span data-k="st5a">AI가 사고를</span><br><span class="acc" data-k="st5b">미리 예측합니다</span></h2>
+      <p class="sec-desc" data-k="sd5">과거 사고 데이터 + 실시간 생체신호 + 작업환경 데이터 통합 분석으로 고위험 시간대와 공종을 미리 예측합니다.</p>
+    </div>
+    <!-- 슬라이더 인터랙티브 예측 -->
+    <div class="card rv" style="margin-bottom:18px;padding:28px">
+      <div style="font-size:1rem;font-weight:800;margin-bottom:4px" data-k="ct1">AI 재해 위험도 예측 — 실시간 시뮬레이터</div>
+      <div style="font-size:var(--fs-sm);color:var(--ink3);margin-bottom:22px">슬라이더를 조작하면 AI 위험도가 실시간으로 변합니다</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:7px">
+              <span style="color:var(--ink3)">고령 근로자 비율</span>
+              <span style="color:var(--a);font-family:monospace;font-weight:800" id="sl-elderly-val">20%</span>
+            </div>
+            <input type="range" id="sl-elderly" min="0" max="80" value="20" step="1"
+              style="width:100%;accent-color:var(--a)" oninput="updateAIPredict()">
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:7px">
+              <span style="color:var(--ink3)">PPE 미착용률</span>
+              <span style="color:var(--w);font-family:monospace;font-weight:800" id="sl-ppe-val">15%</span>
+            </div>
+            <input type="range" id="sl-ppe" min="0" max="60" value="15" step="1"
+              style="width:100%;accent-color:var(--w)" oninput="updateAIPredict()">
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:7px">
+              <span style="color:var(--ink3)">작업장 온도 (°C)</span>
+              <span style="color:var(--r);font-family:monospace;font-weight:800" id="sl-temp-val">35°C</span>
+            </div>
+            <input type="range" id="sl-temp" min="20" max="45" value="35" step="1"
+              style="width:100%;accent-color:var(--r)" oninput="updateAIPredict()">
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:7px">
+              <span style="color:var(--ink3)">평균 피로도</span>
+              <span style="color:var(--p);font-family:monospace;font-weight:800" id="sl-fat-val">40%</span>
+            </div>
+            <input type="range" id="sl-fat" min="0" max="100" value="40" step="1"
+              style="width:100%;accent-color:var(--p)" oninput="updateAIPredict()">
+          </div>
+        </div>
+        <!-- 결과 패널 -->
+        <div style="display:flex;flex-direction:column;gap:12px;justify-content:center">
+          <div style="text-align:center;padding:24px;border-radius:16px;border:2px solid var(--bdr);transition:.3s" id="aiRiskCard">
+            <div style="font-size:13px;font-weight:600;color:var(--ink3);margin-bottom:8px">AI 예측 위험도</div>
+            <div style="font-size:52px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums;transition:.3s" id="aiRiskNum">42</div>
+            <div style="font-size:14px;font-weight:700;margin-top:6px" id="aiRiskLbl">보통</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px" id="aiRiskFactors"></div>
+        </div>
+      </div>
+    </div>
+    <div class="ai-grid rv d1">
+      <div class="card"><div style="font-size:1rem;font-weight:800;margin-bottom:5px" data-k="ct1">연령대별 사고 위험도 비교</div>
+        <div style="font-size:var(--fs-sm);color:var(--ink3);margin-bottom:18px" data-k="cs1">55세 이상 고령 근로자의 위험도가 현저히 높습니다</div>
+        <div class="ch"><canvas id="cAge" role="img" aria-label="연령대별 사고 위험도 비교 막대 차트"></canvas></div></div>
+      <div class="card"><div style="font-size:1rem;font-weight:800;margin-bottom:5px" data-k="ct2">PPE 위반 유형 분포</div>
+        <div style="font-size:var(--fs-sm);color:var(--ink3);margin-bottom:18px" data-k="cs2">안전모 미착용이 전체 위반의 44%를 차지합니다</div>
+        <div class="ch"><canvas id="cPPE" role="img" aria-label="PPE 위반 유형 도넛 차트"></canvas></div></div>
+    </div>
+    <div class="card rv" style="margin-top:18px">
+      <div style="font-size:1rem;font-weight:800;margin-bottom:5px" data-k="ct3">시간대별 AI 위험 예측 지수</div>
+      <div style="font-size:var(--fs-sm);color:var(--ink3);margin-bottom:18px" data-k="cs3">오전 6–8시, 오후 14–16시가 고위험 구간입니다</div>
+      <div style="height:230px;position:relative"><canvas id="cTime" role="img" aria-label="시간대별 위험 예측 라인 차트"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:32px;align-items:start;flex-wrap:wrap">
+      <!-- 왼쪽: 프로젝트 정보 -->
+      <div>
+        <div class="ft-logo" style="margin-bottom:14px"><div class="ft-m">GYY</div>GUOYUNYUN · 202317100</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.5);line-height:1.8;font-family:monospace">
+          경운대학교 보건대학<br>
+          학번: 202317100<br>
+          RISE 2025–2029<br>
+          SHine-K Initiative
+        </div>
+        <ul class="ft-links" style="margin-top:16px">
+          <li><a href="#register" data-k="nv1">근로자 등록</a></li>
+          <li><a href="#monitor" data-k="nv2">모니터링</a></li>
+          <li><a href="#elderly" data-k="nv3">고령 분석</a></li>
+          <li><a href="#ai" data-k="nv4">AI 예측</a></li>
+        </ul>
+      </div>
+      <!-- 가운데: QR 코드 -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div style="width:90px;height:90px;background:#fff;border-radius:10px;
+          display:flex;align-items:center;justify-content:center;padding:6px">
+          <canvas id="qrCanvas" width="78" height="78"></canvas>
+        </div>
+        <div style="font-size:11px;color:rgba(255,255,255,.35);text-align:center;font-family:monospace">
+          GUOYUNYUN<br>202317100
+        </div>
+      </div>
+      <!-- 오른쪽: 기술 스펙 -->
+      <div style="text-align:right">
+        <div style="font-size:12px;color:rgba(255,255,255,.35);line-height:2;font-family:monospace">
+          26개 통합 기능 모듈<br>
+          8가지 카메라 모드<br>
+          한·중·영 3개국어<br>
+          LocalStorage 데이터 저장<br>
+          실시간 생체신호 모니터링<br>
+          AI 재해예측 시뮬레이터
+        </div>
+        <div class="ft-copy" style="margin-top:14px">© 2025 GUOYUNYUN · SHine-K 2.0</div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+/* ════ i18n ════ */
+const T={
+ko:{
+  nv1:'근로자 등록',nv2:'실시간 모니터링',nv3:'고령 근로자',nv4:'AI 예측',nvct:'근로자 등록하기',
+  nd11:'신규 등록',nd12:'근로자 목록',nd13:'고령 전용',ndnew:'신규',nd1st:'세계 최초',
+  nd21:'생체신호',nd22:'인원 위치',nd23:'경보 센터',nd31:'전용 대시보드',nd32:'위험 분석',nd41:'재해예측 AI',nd42:'위험 처리 흐름',
+  hbd:'GUOYUNYUN · 202317100',hey:'실시간 모니터링 중',
+  hh1:'산업안전 · 건강을',hh2:'하나의 플랫폼으로',
+  hsb:'자동 등록 · 실시간 생체 모니터링 · 고령 근로자 전용 대시보드(세계 최초) · AI 재해예측 · 119 자동연계.',
+  hb1:'근로자 등록 시작',hb2:'실시간 현황 보기 →',
+  hs1:'누적 등록 근로자',hs2:'통합 기능 모듈',hs3:'위험행동 인식 정확도',hs4:'데이터 전송 지연',
+  sl1:'Module A · 근로자 등록',st1a:'이름 입력 한 번으로',st1b:'자동 등록 완료',
+  sd1:'55세 이상은 등록 즉시 고령 근로자로 자동 분류됩니다. LocalStorage 저장으로 새로고침 후에도 유지됩니다.',
+  ftt:'신규 근로자 등록',fsb:'* 표시 항목은 필수입니다.',
+  fl1:'이름 *',fl2:'나이 *',fl3:'공종 *',fl4:'근무반',fl5:'ID / 연락처',
+  ph1:'홍길동',ph2:'이름, ID, 공종 검색…',
+  aw:'⚠ 55세 이상 — 고령 근로자로 자동 분류',
+  r0:'선택',r1:'압착',r2:'조립',r3:'용접',r4:'도장',r5:'검사',r6:'운반',r7:'설비',
+  s1:'주간',s2:'야간',s3:'교대',rb:'등록하기',rct:'최근 등록',lv:'실시간',
+  sl2:'Module B · 실시간 모니터링',st2a:'모든 근로자를',st2b:'한눈에',
+  sd2:'심박수·혈중산소·체온·피로도를 실시간으로. 행에 마우스를 올리면 상세 건강 데이터 툴팁이 나타납니다.',
+  ml1:'전체 근로자',ml2:'온라인',ml3:'고령(55+)',ml4:'경보 발생',
+  fa:'전체',fe:'55세+',fal:'경보',
+  c1:'근로자',c2:'상태',c3:'심박수',c4:'혈중산소',c5:'체온',c6:'PPE',c7:'태그',
+  sl3:'Module C · 고령근로자 전용 — 세계 최초',st3a:'55세+',st3b:'근로자를',st3c:'따로 분류하고 집중 관리',
+  sd3:'전 세계 어떤 플랫폼도 구현하지 않은 고령 근로자 전용 안전 모듈.',
+  kl1:'근골격계 위험 지수',kl2:'열스트레스 지수',kl3:'반응시간 지연 (ms)',
+  ec1:'근로자',ec2:'나이',ec3:'상태',ec4:'위험도',ec5:'권장사항',
+  sl4:'Module D · 위험 감지 · 경보',st4a:'위험 발생 즉시',st4b:'자동 경보 · 119 연계',
+  sd4:'위험행동 인식 정확률 ≥95%, 전송 지연 ≤1초.',
+  lvd:'위험',lvw:'주의',lvo:'정상',sos:'📞 119 연동 중…',
+  at1:'안전모 미착용 — C-1구역',ad1:'용접 작업 중 이민준(31세) 안전모 미착용 감지. AI 정확률 ≥95%.',
+  at2:'고온 환경 주의 — 압착 A구역',ad2:'38.2°C 초과. 고령 근로자 2명 열스트레스 위험 구간.',
+  at3:'피로도 초과 (55세+) — B-1구역',ad3:'정영숙(57세) 피로 87%. 교대 권장.',
+  at4:'PPE 전체 정상 — B구역',ad4:'B구역 전 근로자 PPE 완전 착용 확인.',
+  fll:'감지 → 판단 → 행동 → 기록',
+  fd1:'AI 카메라·웨어러블·열화상으로 위험 감지',fd2:'AI가 위험 수준 판별',fd3:'관리자 알림 · 119 자동연계',fd4:'사고 기록 · 원인 분석 · 저장',
+  sl5:'Module G · AI 예측 · 데이터 시각화',st5a:'AI가 사고를',st5b:'미리 예측합니다',
+  sd5:'과거 사고 데이터 + 실시간 생체신호 + 작업환경 데이터 통합 분석.',
+  ct1:'연령대별 사고 위험도 비교',cs1:'55세 이상 위험도가 현저히 높습니다',
+  ct2:'PPE 위반 유형 분포',cs2:'안전모 미착용이 전체의 44%',
+  ct3:'시간대별 AI 위험 예측 지수',cs3:'오전 6–8시, 오후 14–16시가 고위험 구간',
+  a1t:'안전모 미착용 감지',a1s:'이민준 · C-1구역 · 방금 전',
+  a2t:'고온 환경 주의',a2s:'압착 A구역 · 38.2°C · 2분 전',
+  a3t:'피로도 초과 (55세+)',a3s:'정영숙(57) · B-1구역 · 5분 전',
+  sok:'정상',swa:'주의',sri:'위험',el:'고령',
+  tthr:'심박수',tts:'혈중산소',ttt:'체온',ttf:'피로도',ttsh:'근무반',tta:'나이',
+  tgel:'고령',tgnh:'안전모미착용',tgng:'보안경미착용',tgnv:'조끼미착용',tgf:'피로↑',tgof:'오프라인',
+  adv:['저위험 구역 배치 권장','작업 강도 경감 권장','정기 수분 보충 필요','교대 주기 단축 권장','현재 상태 양호'],
+  emp:'검색 결과가 없습니다.',eemp:'고령 근로자가 없습니다.',now:'방금',ws:'명 표시 중',
+  rtsl:'Module E+F+H · 실시간 통합 데모',rtst1:'카메라·생체신호·위험원을',rtst2:'한 화면에서 실시간 연동',
+  rtsd:'가시광·적외선·열화상 전환 / 근로자별 생체신호 실시간 그래프 / 위험원 센서 수치가 동기화됩니다.',
+  dt1:'📷 카메라',dt2:'❤ 생체신호',dt3:'☣ 위험원',
+  camst:'실제 카메라 연결',camsd:'카메라를 허용하면 가시광·적외선·열화상·윤곽선 필터를 실시간으로 적용합니다.',
+  camopen:'카메라 켜기',camstop:'■ 종료',camerr:'카메라 접근이 거부되었습니다. 브라우저 설정에서 허용해주세요.',
+  camai:'실시간 AI 분석',cmbright:'밝기',cmmotion:'모션 강도',cmred:'적색 열 감지 (열화상 시뮬)',
+  camlog:'감지 로그',camlogwait:'카메라 시작 후 감지 로그가 표시됩니다',
+  medge:'윤곽선',  mvis:'가시광',mir:'적외선',mth:'열화상',
+  csl:'Module E · 실시간 카메라 모니터링',cst1:'다광스펙트럼 카메라로',cst2:'작업장 전체를 실시간 감시',
+  csd:'1920×1080 · 가시광·적외·열화상 3모드 · 360° 운대 · PPE·위험행동·열스트레스 동시 감지',
+  crlive:'● LIVE — 카메라 #3 · 압착구역',crvs:'가시광 모드',cppe:'⛑ PPE 정상',czone:'📍 A구역',
+  cheat:'🌡 체온 37.8°C',cauth:'🔓 인가 근로자',ctnorm:'정상 · 근로자 4명',
+  ctppe:'⚠ PPE 미착용 감지',ctfire:'🔥 위험행동 감지',ctnorm2:'정상 · 근로자 2명',
+  vsl:'Module F · 웨어러블 생체신호 실시간',vst1:'심박수·혈중산소·체온',vst2:'초 단위 실시간 추적',
+  vsd:'Garmin·Apple Watch·스마트 안전모 등 다기기 생체신호 통합. 이상 즉시 경보.',
+  vdevice:'웨어러블 연동 중 — Garmin Fenix',vnow:'지금',
+  vghr:'심박수',vgspo2:'혈중산소',vgtemp:'체온',vgfat:'피로도',
+  hzsl:'Module H · 위험원 실시간 측정',hzst1:'고온·독성가스·분진을',hzst2:'센서가 24시간 감시',
+  hzsd:'작업장 위험원 농도 초 단위 측정. 임계값 초과 즉시 경보, 고령 근로자 구역 우선 알림.',
+  hztemp:'작업장 온도',hzco:'일산화탄소 (CO)',hzdust:'분진 농도',
+  hzover:'임계값 초과',hznorm:'정상 범위',hzwarn:'주의 구간',
+  hzlim1:'안전 기준 ≤37°C',hzlim2:'안전 기준 ≤25ppm',hzlim3:'안전 기준 ≤50μg/m³',
+  hzct:'최근 30분 위험원 추이',hzcs:'붉은 음영 = 임계값 초과 구간',
+  fsl:'26개 통합 기능 모듈',fst1:'경쟁사가 없는',fst2:'전방위 산업안전 플랫폼',
+  fsd:'국내외 6개 플랫폼 조사 결과, 고령근로자 전용 기능은 0개. SHine-K는 세계 최초로 이를 구현합니다.',
+},
+zh:{
+  nv1:'工人登记',nv2:'实时监测',nv3:'老龄化工人',nv4:'AI预测',nvct:'立即登记工人',
+  nd11:'新建登记',nd12:'工人列表',nd13:'老龄专项',ndnew:'新功能',nd1st:'全球首创',
+  nd21:'生命体征',nd22:'人员定位',nd23:'警报中心',nd31:'专属仪表盘',nd32:'风险分析',nd41:'灾害预测AI',nd42:'危险处理流程',
+  hbd:'GUOYUNYUN · 202317100',hey:'实时监测中',
+  hh1:'产业安全 · 健康',hh2:'一个平台全覆盖',
+  hsb:'自动登记 · 实时生命体征监测 · 老龄化工人专属仪表盘（全球首创） · AI灾害预测 · 119自动联动。',
+  hb1:'开始登记工人',hb2:'查看实时状态 →',
+  hs1:'累计登记工人',hs2:'集成功能模块',hs3:'危险行为识别精度',hs4:'数据传输延迟',
+  sl1:'Module A · 工人登记',st1a:'输入姓名',st1b:'自动完成登记',
+  sd1:'55岁以上工人登记即自动分类为老龄工人。LocalStorage持久化，刷新不丢失。',
+  ftt:'新工人登记',fsb:'* 为必填项。',
+  fl1:'姓名 *',fl2:'年龄 *',fl3:'工种 *',fl4:'班次',fl5:'ID / 联系方式',
+  ph1:'请输入姓名',ph2:'搜索姓名、ID、工种…',
+  aw:'⚠ 55岁以上 — 自动分类为老龄工人',
+  r0:'请选择',r1:'压铸',r2:'组装',r3:'焊接',r4:'喷漆',r5:'检查',r6:'搬运',r7:'设备',
+  s1:'白班',s2:'夜班',s3:'轮班',rb:'立即登记',rct:'最近登记',lv:'实时',
+  sl2:'Module B · 实时监测',st2a:'所有工人',st2b:'一目了然',
+  sd2:'实时查看心率·血氧·体温·疲劳度。<strong>鼠标悬停行</strong>可查看详细健康数据气泡。',
+  ml1:'全部工人',ml2:'在线',ml3:'老龄(55+)',ml4:'活跃警报',
+  fa:'全部',fe:'55岁+',fal:'警报',
+  c1:'工人',c2:'状态',c3:'心率',c4:'血氧',c5:'体温',c6:'PPE',c7:'标签',
+  sl3:'Module C · 老龄化工人专项 — 全球首创',st3a:'55岁+',st3b:'工人',st3c:'单独分类 · 重点管理',
+  sd3:'全球任何平台均未实现的老龄化工人专属安全模块。',
+  kl1:'肌骨骼损伤风险指数',kl2:'热应激指数',kl3:'反应时间延迟 (ms)',
+  ec1:'工人',ec2:'年龄',ec3:'状态',ec4:'风险度',ec5:'建议',
+  sl4:'Module D · 危险检测 · 警报',st4a:'危险发生即时',st4b:'自动警报 · 119联动',
+  sd4:'危险行为识别精度≥95%，传输延迟≤1秒。',
+  lvd:'危险',lvw:'警告',lvo:'正常',sos:'📞 119联动中…',
+  at1:'安全帽未佩戴 — C-1区',ad1:'焊接作业中检测到安全帽未佩戴，AI识别精度≥95%。',
+  at2:'高温环境警告 — 压铸A区',ad2:'38.2°C超标。2名老龄工人进入热应激危险区间。',
+  at3:'疲劳超标(55岁+) — B-1区',ad3:'55岁+工人疲劳指数达87%，建议换班。',
+  at4:'PPE全部正常 — B区',ad4:'B区全体工人PPE佩戴确认完毕。',
+  fll:'感知 → 判断 → 行动 → 记录',
+  fd1:'AI摄像头·可穿戴·热成像感知危险',fd2:'AI判别风险等级',fd3:'管理员通知·119自动联动',fd4:'事故记录·原因分析·归档',
+  sl5:'Module G · AI预测 · 数据可视化',st5a:'AI提前',st5b:'预测事故',
+  sd5:'历史事故数据+实时体征+作业环境数据综合分析，预测高风险时段与工种。',
+  ct1:'各年龄段事故风险对比',cs1:'55岁以上工人风险显著高于平均水平',
+  ct2:'PPE违规类型分布',cs2:'安全帽未佩戴占全部违规的44%',
+  ct3:'时段AI风险预测指数',cs3:'早6–8时、午14–16时为高风险时段',
+  a1t:'安全帽未佩戴检测',a1s:'李民俊 · C-1区 · 刚刚',
+  a2t:'高温环境警告',a2s:'压铸A区 · 38.2°C · 2分钟前',
+  a3t:'疲劳超标(55岁+)',a3s:'郑英淑(57) · B-1区 · 5分钟前',
+  sok:'正常',swa:'警告',sri:'危险',el:'老龄',
+  tthr:'心率',tts:'血氧',ttt:'体温',ttf:'疲劳度',ttsh:'班次',tta:'年龄',
+  tgel:'老龄',tgnh:'无安全帽',tgng:'无护目镜',tgnv:'无背心',tgf:'疲劳↑',tgof:'离线',
+  adv:['建议分配低风险区域','建议减轻作业强度','需定期补充水分','建议缩短换班周期','当前状态良好'],
+  emp:'没有搜索结果。',eemp:'暂无老龄工人。',now:'刚刚',ws:'人',
+  rtsl:'Module E+F+H · 实时综合演示',rtst1:'摄像头·生命体征·危险源',rtst2:'一个界面实时联动',
+  rtsd:'可见光·红外线·热成像切换 / 各工人生命体征实时图表 / 危险源传感器数值全部同步。',
+  dt1:'📷 摄像头',dt2:'❤ 生命体征',dt3:'☣ 危险源',
+  camst:'连接真实摄像头',camsd:'允许摄像头权限后，实时应用可见光·红外线·热成像·轮廓线滤镜。',
+  camopen:'开启摄像头',camstop:'■ 停止',camerr:'摄像头访问被拒绝，请在浏览器设置中允许权限。',
+  camai:'实时AI分析',cmbright:'亮度',cmmotion:'运动强度',cmred:'红色热量检测（热成像模拟）',
+  camlog:'检测日志',camlogwait:'启动摄像头后显示检测日志',
+  medge:'轮廓线',  mvis:'可见光',mir:'红外线',mth:'热成像',
+  csl:'Module E · 实时摄像头监控',cst1:'多光谱摄像头',cst2:'实时监视全作业区',
+  csd:'1920×1080 · 可见光·红外线·热成像3模式 · 360°云台 · PPE·危险行为·热应激同步检测',
+  crlive:'● 直播 — 摄像头#3 · 压铸区',crvs:'可见光模式',cppe:'⛑ PPE正常',czone:'📍 A区',
+  cheat:'🌡 体温37.8°C',cauth:'🔓 已授权工人',ctnorm:'正常 · 4名工人',
+  ctppe:'⚠ 检测到PPE未佩戴',ctfire:'🔥 检测到危险行为',ctnorm2:'正常 · 2名工人',
+  vsl:'Module F · 可穿戴生命体征实时',vst1:'心率·血氧·体温',vst2:'秒级实时追踪',
+  vsd:'Garmin·Apple Watch·智能安全帽等多设备生命体征统一显示。异常即时报警。',
+  vdevice:'可穿戴设备接入中 — Garmin Fenix',vnow:'现在',
+  vghr:'心率',vgspo2:'血氧',vgtemp:'体温',vgfat:'疲劳度',
+  hzsl:'Module H · 危险源实时测定',hzst1:'高温·有毒气体·粉尘',hzst2:'传感器24小时监控',
+  hzsd:'作业区危险源浓度秒级测定。超过阈值即时报警，老龄工人区域优先告知。',
+  hztemp:'作业区温度',hzco:'一氧化碳 (CO)',hzdust:'粉尘浓度',
+  hzover:'超过阈值',hznorm:'正常范围',hzwarn:'注意区间',
+  hzlim1:'安全标准 ≤37°C',hzlim2:'安全标准 ≤25ppm',hzlim3:'安全标准 ≤50μg/m³',
+  hzct:'近30分钟危险源趋势',hzcs:'红色阴影 = 超过阈值区间',
+  fsl:'26个集成功能模块',fst1:'竞品无法比拟的',fst2:'全方位产业安全平台',
+  fsd:'国内外6个平台调研结果：老龄化专项功能为0。SHine-K全球首创。',
+},
+en:{
+  nv1:'Registration',nv2:'Monitoring',nv3:'Elderly Workers',nv4:'AI Predict',nvct:'Register Worker',
+  nd11:'New Registration',nd12:'Worker List',nd13:'Elderly Module',ndnew:'New',nd1st:'World First',
+  nd21:'Vital Signs',nd22:'Personnel Map',nd23:'Alert Center',nd31:'Dedicated Dashboard',nd32:'Risk Analysis',nd41:'Disaster AI',nd42:'Risk Flow',
+  hbd:'GUOYUNYUN · 202317100',hey:'Live Monitoring',
+  hh1:'Industrial Safety · Health',hh2:'One Unified Platform',
+  hsb:'Auto-registration · Real-time vitals · Elderly worker dashboard (world first) · AI accident prediction · Emergency 119 integration.',
+  hb1:'Start Registering Workers',hb2:'View Live Status →',
+  hs1:'Registered Workers',hs2:'Feature Modules',hs3:'Hazard Detection Accuracy',hs4:'Data Latency',
+  sl1:'Module A · Worker Registration',st1a:'One Name Input →',st1b:'Auto Registration',
+  sd1:'Workers aged 55+ are automatically classified as elderly. Data persisted in LocalStorage.',
+  ftt:'New Worker Registration',fsb:'* Fields are required.',
+  fl1:'Name *',fl2:'Age *',fl3:'Job Type *',fl4:'Shift',fl5:'ID / Contact',
+  ph1:'Full name',ph2:'Search name, ID, job type…',
+  aw:'⚠ Age 55+ — Auto-classified as elderly worker',
+  r0:'Select',r1:'Pressing',r2:'Assembly',r3:'Welding',r4:'Painting',r5:'Inspection',r6:'Transport',r7:'Equipment',
+  s1:'Day',s2:'Night',s3:'Rotating',rb:'Register',rct:'Recent Registrations',lv:'Live',
+  sl2:'Module B · Real-time Monitoring',st2a:'All Workers',st2b:'At a Glance',
+  sd2:'Monitor heart rate, SpO₂, temperature, and fatigue. <strong>Hover any row</strong> for detailed health tooltip.',
+  ml1:'Total Workers',ml2:'Online',ml3:'Elderly (55+)',ml4:'Active Alerts',
+  fa:'All',fe:'55+',fal:'Alerts',
+  c1:'Worker',c2:'Status',c3:'Heart Rate',c4:'SpO₂',c5:'Temp',c6:'PPE',c7:'Tags',
+  sl3:'Module C · Elderly Worker Module — World First',st3a:'55+',st3b:'Workers',st3c:'Separately Classified',
+  sd3:'The world\'s first dedicated elderly worker safety module.',
+  kl1:'MSK Risk Index',kl2:'Heat Stress Index',kl3:'Reaction Time Delay (ms)',
+  ec1:'Worker',ec2:'Age',ec3:'Status',ec4:'Risk',ec5:'Advice',
+  sl4:'Module D · Hazard Detection · Alerts',st4a:'Instant Alert',st4b:'+ 119 Auto-Link',
+  sd4:'Hazard recognition ≥95%, latency ≤1s.',
+  lvd:'DANGER',lvw:'WARNING',lvo:'NORMAL',sos:'📞 Calling 119…',
+  at1:'Hard Hat Missing — Zone C-1',ad1:'Hard hat not detected on Lee Min-jun (31) during welding. AI accuracy ≥95%.',
+  at2:'High Temperature — Press Zone A',ad2:'Zone temp 38.2°C. 2 elderly workers entering heat stress range.',
+  at3:'Fatigue Exceeded (55+) — Zone B-1',ad3:'Worker (57) fatigue reached 87%. Rotation recommended.',
+  at4:'PPE All Compliant — Zone B',ad4:'All workers in Zone B confirmed wearing full PPE.',
+  fll:'Sense → Judge → Act → Connect',
+  fd1:'AI cameras, wearables, thermal imaging detect hazards',fd2:'AI classifies risk level',fd3:'Manager alert · 119 auto-link',fd4:'Incident record · Root cause · Archive',
+  sl5:'Module G · AI Prediction · Data Visualization',st5a:'AI Predicts Accidents',st5b:'Before They Happen',
+  sd5:'Integrated analysis of historical data + real-time vitals + environment data.',
+  ct1:'Accident Risk by Age Group',cs1:'Workers 55+ show significantly higher risk',
+  ct2:'PPE Violation Types',cs2:'Hard hat violations account for 44% of all PPE incidents',
+  ct3:'AI Risk Index by Hour',cs3:'6–8 AM and 2–4 PM are peak risk windows',
+  a1t:'Hard Hat Missing',a1s:'Lee Min-jun · Zone C-1 · Just now',
+  a2t:'High Temperature Alert',a2s:'Press Zone A · 38.2°C · 2m ago',
+  a3t:'Fatigue Exceeded (55+)',a3s:'Jung Young-suk (57) · Zone B-1 · 5m ago',
+  sok:'Normal',swa:'Caution',sri:'Danger',el:'Elderly',
+  tthr:'Heart Rate',tts:'SpO₂',ttt:'Temp',ttf:'Fatigue',ttsh:'Shift',tta:'Age',
+  tgel:'Elderly',tgnh:'No Helmet',tgng:'No Goggles',tgnv:'No Vest',tgf:'Fatigue↑',tgof:'Offline',
+  adv:['Assign low-risk zone','Reduce work intensity','Regular hydration needed','Shorten shift rotation','Status good'],
+  emp:'No results found.',eemp:'No elderly workers registered.',now:'just now',ws:' workers shown',
+  rtsl:'Module E+F+H · Real-time Unified Demo',rtst1:'Camera · Vitals · Hazards',rtst2:'all live in one screen',
+  rtsd:'Switch visible/IR/thermal · per-worker live HR chart · hazard sensor values all synchronized.',
+  dt1:'📷 Camera',dt2:'❤ Vitals',dt3:'☣ Hazards',
+  camst:'Connect Real Camera',camsd:'Allow camera access to apply visible/IR/thermal/edge filters in real time.',
+  camopen:'Start Camera',camstop:'■ Stop',camerr:'Camera access denied. Please allow permission in browser settings.',
+  camai:'Real-time AI Analysis',cmbright:'Brightness',cmmotion:'Motion Intensity',cmred:'Red Heat Detection (Thermal Sim)',
+  camlog:'Detection Log',camlogwait:'Detection log appears after camera starts',
+  medge:'Edge Detect',  mvis:'Visible',mir:'Infrared',mth:'Thermal',
+  csl:'Module E · Real-time Camera Monitoring',cst1:'Multi-spectral cameras',cst2:'monitor the whole worksite live',
+  csd:'1920×1080 · Visible·IR·Thermal 3 modes · 360° PTZ · PPE·hazard·heat simultaneous detection',
+  crlive:'● LIVE — Camera #3 · Press Zone',crvs:'Visible Light Mode',cppe:'⛑ PPE Normal',czone:'📍 Zone A',
+  cheat:'🌡 Temp 37.8°C',cauth:'🔓 Authorized Worker',ctnorm:'Normal · 4 workers',
+  ctppe:'⚠ PPE violation detected',ctfire:'🔥 Hazard behavior detected',ctnorm2:'Normal · 2 workers',
+  vsl:'Module F · Wearable Vital Signs Live',vst1:'HR · SpO₂ · Temperature',vst2:'Second-by-second tracking',
+  vsd:'Garmin·Apple Watch·Smart Helmet vitals unified display. Instant alert on anomaly.',
+  vdevice:'Wearable connected — Garmin Fenix',vnow:'Now',
+  vghr:'Heart Rate',vgspo2:'SpO₂',vgtemp:'Temperature',vgfat:'Fatigue',
+  hzsl:'Module H · Hazard Source Monitoring',hzst1:'Heat · Toxic Gas · Dust',hzst2:'24/7 sensor surveillance',
+  hzsd:'Worksite hazard concentrations measured in real time. Threshold breach triggers instant alert.',
+  hztemp:'Worksite Temperature',hzco:'Carbon Monoxide (CO)',hzdust:'Dust Concentration',
+  hzover:'Threshold exceeded',hznorm:'Normal range',hzwarn:'Caution zone',
+  hzlim1:'Safe limit ≤37°C',hzlim2:'Safe limit ≤25ppm',hzlim3:'Safe limit ≤50μg/m³',
+  hzct:'Hazard trend — last 30 min',hzcs:'Red zone = threshold exceeded',
+  fsl:'26 Integrated Feature Modules',fst1:'No Competitor Matches',fst2:'360° Industrial Safety Platform',
+  fsd:'Survey of 6 platforms worldwide: 0 have elderly worker features. SHine-K implements it first.',
+}
+};
+let L='ko';
+const t=k=>T[L][k]??T.ko[k]??k;
+function setL(l){
+  L=l;
+  ['ko','zh','en'].forEach(x=>document.getElementById('btn-'+x).classList.toggle('on',x===l));
+  document.querySelectorAll('[data-k]').forEach(el=>{const v=t(el.dataset.k);if(v!==undefined)el.innerHTML=v});
+  document.querySelectorAll('[data-ph]').forEach(el=>{const v=t(el.dataset.ph);if(v)el.placeholder=v});
+  renderAll();
+}
+
+/* ════ DATA (LocalStorage改进7) ════ */
+const SK='shk_v4';
+const SEED=[
+  {id:'742135678',name:'홍길동',age:58,role:'압착',shift:'주간',hr:88,spo2:96,temp:37.2,fat:62,loc:'A-3구역',ppe:[1,0,1],st:'wa',on:true},
+  {id:'W-001',name:'김지훈',age:34,role:'용접',shift:'야간',hr:104,spo2:93,temp:38.1,fat:87,loc:'C-1구역',ppe:[0,1,1],st:'ri',on:true},
+  {id:'W-002',name:'이수진',age:27,role:'검사',shift:'주간',hr:68,spo2:99,temp:36.4,fat:18,loc:'B-2구역',ppe:[1,1,1],st:'ok',on:true},
+  {id:'W-003',name:'박순자',age:62,role:'조립',shift:'주간',hr:79,spo2:97,temp:36.9,fat:44,loc:'A-1구역',ppe:[1,1,1],st:'ok',on:true},
+  {id:'W-004',name:'최민철',age:45,role:'도장',shift:'교대',hr:72,spo2:98,temp:36.6,fat:31,loc:'D-4구역',ppe:[1,1,0],st:'wa',on:true},
+  {id:'W-005',name:'정영숙',age:57,role:'운반',shift:'주간',hr:91,spo2:95,temp:37.5,fat:87,loc:'B-1구역',ppe:[1,1,1],st:'wa',on:true},
+  {id:'W-006',name:'강동원',age:31,role:'설비',shift:'야간',hr:65,spo2:99,temp:36.3,fat:12,loc:'E-2구역',ppe:[1,1,1],st:'ok',on:false},
+  {id:'W-007',name:'이민준',age:31,role:'용접',shift:'야간',hr:104,spo2:93,temp:38.2,fat:81,loc:'C-1구역',ppe:[0,1,1],st:'ri',on:true},
+];
+function ld(){try{const r=localStorage.getItem(SK);return r?JSON.parse(r):[...SEED]}catch{return[...SEED]}}
+function sv(ws){localStorage.setItem(SK,JSON.stringify(ws))}
+if(!localStorage.getItem(SK))sv([...SEED]);
+let WS=ld(), FM='all';
+
+/* ── helpers ── */
+const avc=s=>s==='ok'?'avg':s==='wa'?'ava':'avr';
+const hrc=v=>v>=100?'ri':v>=88?'wa':'';
+const sc2=v=>v<=94?'ri':v<=96?'wa':'';
+const tc=v=>v>=38?'ri':v>=37.2?'wa':'';
+const fc=v=>v>=70?'ri':v>=40?'wa':'ok';
+const fcol=v=>v>=70?'#F04452':v>=40?'#FF9F2D':'#16C68C';
+const slbl=s=>t('s'+s);
+
+/* ════ REGISTER ════ */
+function chkA(){const a=parseInt(document.getElementById('fa').value);document.getElementById('aw').style.display=a>=55?'block':'none'}
+function doReg(){
+  const name=document.getElementById('fn').value.trim();
+  const age=parseInt(document.getElementById('fa').value);
+  const role=document.getElementById('fr').value;
+  const shift=document.getElementById('fs').value;
+  const rawId=document.getElementById('fi').value.trim();
+  if(!name||!age||!role){alert(L==='ko'?'이름·나이·공종은 필수입니다.':L==='zh'?'姓名·年龄·工种为必填项。':'Name, Age & Job Type are required.');return}
+  const hr=Math.round(62+Math.random()*20),spo2=Math.round(96+Math.random()*3);
+  const temp=parseFloat((36.2+Math.random()*.7).toFixed(1)),fat=Math.round(8+Math.random()*28);
+  const locs=['A-1구역','A-2구역','B-1구역','B-3구역','C-2구역','D-1구역'];
+  const id=rawId||`W-${String(WS.length+1).padStart(3,'0')}`;
+  WS.unshift({id,name,age,role,shift,hr,spo2,temp,fat,loc:locs[Math.floor(Math.random()*locs.length)],ppe:[1,1,1],st:'ok',on:true,_n:true});
+  sv(WS);
+  ['fn','fa','fi'].forEach(i=>{const el=document.getElementById(i);if(el)el.value=''});
+  document.getElementById('fr').value='';document.getElementById('aw').style.display='none';
+  renderAll();
+}
+
+/* ════ RECENT (改进7) ════ */
+function renderRec(){
+  document.getElementById('recList').innerHTML=WS.slice(0,6).map(w=>`
+  <div class="ri"><div class="av ${avc(w.st)}">${w.name.charAt(0)}</div>
+  <div><div class="ri-name">${w.name}${w.age>=55?` <span class="etag">${t('el')}</span>`:''}</div>
+    <div class="ri-meta">${w.role} · ${w.shift} · ${w.id}</div></div>
+  <div class="ri-time">${w._n?t('now'):w.id}</div></div>`).join('');
+}
+
+/* ════ TABLE (改进核心: 悬停tooltip) ════ */
+function buildTT(w){
+  return `<div class="wtt"><div class="tt-hd">${w.id} · ${w.loc}</div>
+<div class="tt-r"><span class="ttk">${t('tthr')}</span><span class="ttv ${hrc(w.hr)||'ok'}">${w.hr} bpm</span></div>
+<div class="tt-r"><span class="ttk">${t('tts')}</span><span class="ttv ${sc2(w.spo2)||'ok'}">${w.spo2}%</span></div>
+<div class="tt-r"><span class="ttk">${t('ttt')}</span><span class="ttv ${tc(w.temp)||'ok'}">${w.temp.toFixed(1)}°C</span></div>
+<div class="tt-r"><span class="ttk">${t('ttf')}</span><div class="tt-bw"><div class="tt-bf" style="width:${w.fat}%;background:${fcol(w.fat)}"></div></div><span class="ttv ${fc(w.fat)}">${w.fat}%</span></div>
+<div class="tt-sep"></div>
+<div class="tt-r"><span class="ttk">${t('ttsh')}</span><span class="ttv">${w.shift}</span></div>
+<div class="tt-r"><span class="ttk">${t('tta')}</span><span class="ttv ${w.age>=55?'wa':''}">${w.age}${w.age>=55?' ('+t('el')+')':''}</span></div>
+${!w.on?`<div class="tt-r"><span class="ttk">Status</span><span class="ttv" style="color:var(--ink4)">Offline</span></div>`:''}</div>`;
+}
+function buildTags(w){
+  const r=[];
+  if(w.age>=55)r.push(`<span class="wtag wtw">${t('tgel')}</span>`);
+  if(!w.ppe[0])r.push(`<span class="wtag wtr">${t('tgnh')}</span>`);
+  if(!w.ppe[1])r.push(`<span class="wtag wtr">${t('tgng')}</span>`);
+  if(!w.ppe[2])r.push(`<span class="wtag wtr">${t('tgnv')}</span>`);
+  if(w.fat>=70)r.push(`<span class="wtag wtr">${t('tgf')}</span>`);
+  if(!w.on)r.push(`<span class="wtag" style="background:var(--bg3);color:var(--ink4)">${t('tgof')}</span>`);
+  return r.length?`<div class="tagrow">${r.join('')}</div>`:`<span style="font-size:12px;color:var(--ink5)">—</span>`;
+}
+function setF(m){
+  FM=m;
+  ['all','el','al'].forEach(x=>{const el=document.getElementById('fb-'+x);if(el)el.classList.toggle('on',false)});
+  const map={all:'fb-all',elderly:'fb-el',alert:'fb-al'};
+  document.getElementById(map[m])?.classList.add('on');
+  rtbl();
+}
+function rtbl(){
+  const q=(document.getElementById('ws')?.value||'').toLowerCase();
+  const list=WS.filter(w=>{
+    const mq=!q||w.name.includes(q)||w.id.toLowerCase().includes(q)||w.role.includes(q);
+    const mf=FM==='all'?true:FM==='elderly'?w.age>=55:w.st!=='ok'||w.ppe.includes(0);
+    return mq&&mf;
+  });
+  const body=document.getElementById('wtBody');
+  if(!body)return;
+  if(!list.length){body.innerHTML=`<div class="wt-empty">${t('emp')}</div>`;return}
+  body.innerHTML=list.map(w=>`
+<div class="wt-row">
+  <div class="av ${avc(w.st)}" style="width:36px;height:36px;font-size:14px">${w.name.charAt(0)}</div>
+  <div><div class="wname">${w.name}${w.age>=55?` <span class="we">${t('el')}</span>`:''}<span class="wid">${w.id}</span></div>
+    <div class="wsub">${w.role} · ${w.shift} · ${w.loc}</div></div>
+  <div class="sts s${w.st}"><div class="sd"></div>${slbl(w.st)}</div>
+  <div class="vt ${hrc(w.hr)}">${w.hr} bpm</div>
+  <div class="vt ${sc2(w.spo2)}">${w.spo2}%</div>
+  <div class="vt ${tc(w.temp)}">${w.temp.toFixed(1)}°C</div>
+  <div class="prow">
+    <div class="pc ${w.ppe[0]?'pcok':'pcno'}">⛑</div>
+    <div class="pc ${w.ppe[1]?'pcok':'pcno'}">🥽</div>
+    <div class="pc ${w.ppe[2]?'pcok':'pcno'}">🦺</div>
+  </div>
+  <div style="position:relative">${buildTags(w)}${buildTT(w)}</div>
+</div>`).join('');
+  const cnt=document.getElementById('wtCnt');
+  if(cnt)cnt.textContent=L==='ko'?`${list.length}${t('ws')}`:L==='zh'?`显示 ${list.length} ${t('ws')}`:`${list.length}${t('ws')}`;
+  updStats();
+}
+
+
+/* ════ FEATURE GRID (26개 모듈) ════ */
+const FEATS = [
+  {icon:'👤',title:{ko:'이름 입력 자동등록',zh:'姓名输入自动登记',en:'Name → Auto Register'},desc:{ko:'이름 한 번으로 공종·반·나이 자동 생성',zh:'一次输入自动生成档案',en:'One input auto-generates full profile'},tag:{ko:'당신의 창작',zh:'您的创新',en:'Your Innovation'},tagC:'var(--a)'},
+  {icon:'🎥',title:{ko:'인면·안전모·차량 인식',zh:'人脸·安全帽·车辆识别',en:'Face·Helmet·Vehicle AI'},desc:{ko:'1920×1080 단일 카메라 4종 동시 인식',zh:'单摄像头同步识别4类目标',en:'4-target recognition in single camera'},tag:{ko:'정확률 ≥90%',zh:'精度≥90%',en:'Accuracy ≥90%'},tagC:'var(--g)'},
+  {icon:'🔄',title:{ko:'360° 전방위 클라우드 카메라',zh:'360°全方位云台摄像',en:'360° PTZ Camera'},desc:{ko:'수평 360°·수직 -30~+90°·청명도 ≥800선',zh:'水平360°·垂直90°·≥800线',en:'H360°·V90°·≥800 lines clarity'},tag:{ko:'3000×1080 접합',zh:'3000×1080拼接',en:'3000×1080 stitch'},tagC:'var(--p)'},
+  {icon:'🌡',title:{ko:'다광스펙트럼 열화상',zh:'多光谱热成像',en:'Multi-Spectral Thermal'},desc:{ko:'적외·컬러·흑백 3모드, 야간 완전 커버',zh:'红外·彩色·黑白三模式',en:'IR·Color·B&W night coverage'},tag:{ko:'하드웨어 통합',zh:'硬件集成',en:'HW Integration'},tagC:'var(--amb)'},
+  {icon:'❤',title:{ko:'심박수·혈중산소 실시간',zh:'心率·血氧实时监测',en:'HR·SpO₂ Real-time'},desc:{ko:'웨어러블 다기기 연동, 이상 즉시 경보',zh:'可穿戴多设备接入，异常即时预警',en:'Wearable multi-device, instant alert'},tag:{ko:'정확률 ≥90%',zh:'精度≥90%',en:'Accuracy ≥90%'},tagC:'var(--r)'},
+  {icon:'😴',title:{ko:'피로도·수면감지',zh:'疲劳·睡岗检测',en:'Fatigue·Sleep Detection'},desc:{ko:'생체신호+근무시간 복합 피로지수 산출',zh:'生体信号+工时复合疲劳指数',en:'Vitals+hours = fatigue index'},tag:{ko:'≤1초 응답',zh:'≤1s响应',en:'≤1s response'},tagC:'var(--w)'},
+  {icon:'🦺',title:{ko:'PPE 착용 실시간 감지',zh:'PPE实时合规检测',en:'PPE Compliance AI'},desc:{ko:'안전모·보안경·조끼 3종 동시 확인',zh:'安全帽·护目镜·背心三项同步',en:'Helmet·Goggles·Vest simultaneous'},tag:{ko:'정확률 ≥95%',zh:'精度≥95%',en:'Accuracy ≥95%'},tagC:'var(--g)'},
+  {icon:'🔥',title:{ko:'위험 작업 감지',zh:'危险作业检测',en:'Hazard Behavior AI'},desc:{ko:'위반동화·흡연·침입 등 6종 위험 시나리오',zh:'违规动火·吸烟·侵入等6种危险场景',en:'6 hazard scenarios incl. fire·smoking'},tag:{ko:'≤1초 전송',zh:'≤1s传输',en:'≤1s latency'},tagC:'var(--r)'},
+  {icon:'🚶',title:{ko:'넘어짐 감지 → 119 자동연계',zh:'跌倒检测→119自动联动',en:'Fall Detection → 119'},desc:{ko:'넘어짐 감지 즉시 119 연계, 관리자 동시 알림',zh:'跌倒即时联动119，同步通知管理员',en:'Fall → auto 119 + manager alert'},tag:{ko:'119 연동',zh:'119联动',en:'119 Link'},tagC:'var(--r)'},
+  {icon:'📍',title:{ko:'실시간 인원 위치 추적',zh:'实时人员定位追踪',en:'Real-time RTLS'},desc:{ko:'RTLS 센서, 전 근로자 실시간 좌표 표시',zh:'RTLS传感器显示所有工人实时坐标',en:'RTLS sensor tracks all workers live'},tag:{ko:'Kwant RTLS 참조',zh:'参考Kwant RTLS',en:'Ref: Kwant RTLS'},tagC:'var(--a)'},
+  {icon:'🔲',title:{ko:'전자 울타리',zh:'电子围栏',en:'Electronic Geofence'},desc:{ko:'위험구역 경계 설정, 침입 즉시 경보',zh:'自定义危险区域边界，越界即时警报',en:'Custom danger zones with instant alert'},tag:{ko:'미인가인원 차단',zh:'未授权人员阻断',en:'Unauthorized block'},tagC:'var(--w)'},
+  {icon:'☣',title:{ko:'위험원 실시간 측정',zh:'危险源实时测定',en:'Hazard Source Monitor'},desc:{ko:'고온·독성가스·분진 농도 센서 지속 감시',zh:'高温·毒气·粉尘浓度持续监控',en:'Temp·toxic gas·dust continuous monitor'},tag:{ko:'중국 플랫폼 참조',zh:'参考中国平台',en:'Ref: CN Platform'},tagC:'var(--p)'},
+  {icon:'🌡',title:{ko:'체온·열스트레스 감지',zh:'体温·热应激检测',en:'Thermal Stress Monitor'},desc:{ko:'열화상+웨어러블 복합, 고령 우선 모니터링',zh:'热成像+可穿戴复合，老龄优先监测',en:'Thermal+wearable, elderly priority'},tag:{ko:'고령 특화',zh:'老龄特化',en:'Elderly Focus'},tagC:'var(--amb)'},
+  {icon:'👴',title:{ko:'55세+ 자동 분류 (세계 최초)',zh:'55岁+自动分类（全球首创）',en:'55+ Auto-classify (World First)'},desc:{ko:'등록 즉시 고령 판정, 별도 아카이브',zh:'登记即自动标记，独立档案',en:'Instant elderly tag on registration'},tag:{ko:'🌍 세계 최초',zh:'🌍 全球首创',en:'🌍 World First'},tagC:'var(--g)'},
+  {icon:'📊',title:{ko:'고령 근로자 전용 대시보드',zh:'老龄工人专属仪表盘',en:'Elderly Dedicated Dashboard'},desc:{ko:'근골격계·열스트레스·반응시간 전용 지표',zh:'肌骨骼·热应激·反应时间专属指标',en:'MSK·heat stress·reaction time KPIs'},tag:{ko:'🌍 세계 최초',zh:'🌍 全球首创',en:'🌍 World First'},tagC:'var(--g)'},
+  {icon:'💼',title:{ko:'고령 근로자 적정 배치 추천',zh:'老龄工人岗位适配建议',en:'Elderly Job Assignment AI'},desc:{ko:'나이+체징 데이터 기반 저위험 공종 추천',zh:'年龄+体征数据推荐低风险工种',en:'Age+vitals-based low-risk job advice'},tag:{ko:'경쟁사 없음',zh:'竞品无此功能',en:'No competitor'},tagC:'var(--a)'},
+  {icon:'🕐',title:{ko:'반차 관리',zh:'班次管理',en:'Shift Management'},desc:{ko:'온라인 근로자 명단, 교대 배분 기록',zh:'在线工人列表，轮班分配记录',en:'Online list, shift allocation records'},tag:{ko:'Kwant 참조',zh:'参考Kwant',en:'Ref: Kwant'},tagC:'var(--ink4)'},
+  {icon:'📋',title:{ko:'특수작업 허가증 관리',zh:'特殊作业许可证管理',en:'Special Work Permit'},desc:{ko:'고위험 작업 전 디지털 승인·기록',zh:'高危作业前数字化审批记录',en:'Digital approval for hazardous work'},tag:{ko:'중국 쌍중예방 참조',zh:'参考中国双重预防',en:'Ref: CN dual-prevention'},tagC:'var(--p)'},
+  {icon:'📅',title:{ko:'출결·일보 자동 관리',zh:'考勤·日报自动管理',en:'Attendance · Daily Report'},desc:{ko:'출근 시 자동 기록, 일일 현장 리포트',zh:'上班自动记录，每日现场报告',en:'Auto-record on check-in, daily reports'},tag:{ko:'Kwant 참조',zh:'参考Kwant',en:'Ref: Kwant'},tagC:'var(--ink4)'},
+  {icon:'📁',title:{ko:'사고 사례 기록·아카이브',zh:'事故案例记录归档',en:'Incident Record Archive'},desc:{ko:'사고·아차사고 표준화 기록·분석',zh:'事故/险情标准化记录分析',en:'Standardized incident analysis'},tag:{ko:'Kwant 참조',zh:'参考Kwant',en:'Ref: Kwant'},tagC:'var(--ink4)'},
+  {icon:'🔗',title:{ko:'다기기 웨어러블 연동',zh:'多设备可穿戴接入',en:'Multi-device Wearable'},desc:{ko:'Garmin·Apple Watch·스마트 안전모 통합',zh:'Garmin·Apple Watch·智能安全帽统一接入',en:'Garmin·Apple Watch·Smart Helmet'},tag:{ko:'SafeGuard 참조',zh:'参考SafeGuard',en:'Ref: SafeGuard'},tagC:'var(--a)'},
+  {icon:'🏭',title:{ko:'DCS/GDS 데이터 융합',zh:'DCS/GDS数据融合',en:'DCS/GDS Integration'},desc:{ko:'산업 제어 시스템 데이터 실시간 연동',zh:'工业控制系统数据实时联动',en:'Industrial control system live data'},tag:{ko:'중국 플랫폼 참조',zh:'参考中国平台',en:'Ref: CN Platform'},tagC:'var(--p)'},
+  {icon:'🧠',title:{ko:'AI 산업재해 위험 예측',zh:'AI产业灾害风险预测',en:'AI Disaster Prediction'},desc:{ko:'과거+실시간 데이터 통합 위험 예측',zh:'历史+实时数据综合风险预测',en:'Historical+live data risk forecasting'},tag:{ko:'KOSHA AI 참조',zh:'参考KOSHA AI',en:'Ref: KOSHA AI'},tagC:'var(--a)'},
+  {icon:'📈',title:{ko:'연령대별 사고 위험도 시각화',zh:'年龄段事故风险可视化',en:'Age-based Risk Chart'},desc:{ko:'55세+ 위험도 vs 일반 비교 차트',zh:'55岁+风险 vs 一般对比图',en:'55+ risk vs general comparison'},tag:{ko:'데이터 시각화',zh:'数据可视化',en:'Data Visualization'},tagC:'var(--a)'},
+  {icon:'🌐',title:{ko:'한·중·영 3개국어 지원',zh:'韩中英三语支持',en:'KO·ZH·EN Trilingual'},desc:{ko:'UI·경보·보고서 전체 다국어 지원',zh:'界面·警报·报告全面多语言',en:'Full UI·alerts·reports multilingual'},tag:{ko:'교수님 계승',zh:'继承教授设计',en:'Prof. Heritage'},tagC:'var(--g)'},
+  {icon:'💾',title:{ko:'LocalStorage 데이터 영구 저장',zh:'LocalStorage数据持久化',en:'LocalStorage Persistence'},desc:{ko:'새로고침 후에도 등록 데이터 완전 유지',zh:'刷新后登记数据完全保留',en:'Data survives page refresh'},tag:{ko:'오프라인 가능',zh:'可离线使用',en:'Offline capable'},tagC:'var(--g)'},
+];
+
+function renderFeats(){
+  const grid = document.getElementById('featGrid');
+  if(!grid) return;
+  grid.innerHTML = FEATS.map((f,i)=>`
+  <div class="card rv${i%4===1?' d1':i%4===2?' d2':i%4===3?' d3':''}" style="display:flex;flex-direction:column;gap:0;padding:22px 24px">
+    <div style="font-size:1.6rem;margin-bottom:10px">${f.icon}</div>
+    <div style="font-size:.9rem;font-weight:800;color:var(--ink);margin-bottom:5px">${f.title[L]||f.title.ko}</div>
+    <div style="font-size:var(--fs-sm);color:var(--ink3);line-height:1.6;flex:1">${f.desc[L]||f.desc.ko}</div>
+    <div style="margin-top:10px"><span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;border:1px solid;color:${f.tagC};border-color:${f.tagC};background:${f.tagC}18">${f.tag[L]||f.tag.ko}</span></div>
+  </div>`).join('');
+  initReveal();
+}
+
+/* ════ TOOLTIP JS POSITIONING ════ */
+function initTooltips(){
+  document.addEventListener('mouseover', e=>{
+    const row = e.target.closest('.wt-row, .el-row');
+    if(!row) return;
+    const tt = row.querySelector('.wtt, .eltt');
+    if(!tt) return;
+    const rect = row.getBoundingClientRect();
+    tt.style.top = (rect.top + rect.height/2 - 20) + 'px';
+    tt.style.left = (rect.left - 250) + 'px';
+    // if would go off left, show on right
+    if(rect.left - 250 < 10){
+      tt.style.left = (rect.right + 10) + 'px';
+      tt.querySelectorAll('::after'); // reset arrow
+      tt.style.setProperty('--arr-side','right');
+    }
+    tt.classList.add('show');
+  });
+  document.addEventListener('mouseout', e=>{
+    const row = e.target.closest('.wt-row, .el-row');
+    if(!row) return;
+    // only hide if leaving the row entirely
+    if(!row.contains(e.relatedTarget)){
+      row.querySelectorAll('.wtt,.eltt').forEach(tt=>tt.classList.remove('show'));
+    }
+  });
+}
+
+/* ════ STATS (改进5: 全局颜色贯穿) ════ */
+function updStats(){
+  const g=id=>document.getElementById(id);
+  if(g('ms1'))g('ms1').textContent=WS.length;
+  if(g('ms2'))g('ms2').textContent=WS.filter(w=>w.on).length;
+  if(g('ms3'))g('ms3').textContent=WS.filter(w=>w.age>=55).length;
+  if(g('ms4'))g('ms4').textContent=WS.filter(w=>w.st!=='ok'||w.ppe.includes(0)).length;
+}
+
+/* ════ ELDERLY (改进4: 老龄化专项) ════ */
+function renderEl(){
+  const els=WS.filter(w=>w.age>=55);
+  const body=document.getElementById('elBody');if(!body)return;
+  const adv=T[L].adv;
+  body.innerHTML=els.map(w=>{
+    const rs=Math.min(100,Math.max(0,Math.round(w.fat*.4+(w.hr-60)*.3+(w.temp-36)*20+(w.age-55)*1.5)));
+    const rc=rs>=70?'var(--r)':rs>=40?'var(--w)':'var(--g)';
+    const ai=rs>=70?0:rs>=60?1:rs>=50?2:rs>=35?3:4;
+    return `<div class="el-row">
+<div class="av ${avc(w.st)}" style="width:36px;height:36px;font-size:14px">${w.name.charAt(0)}</div>
+<div><div style="font-size:15px;font-weight:700">${w.name}</div><div style="font-size:12px;color:var(--ink4)">${w.role}·${w.shift}</div></div>
+<div style="font-size:15px;font-weight:700;color:var(--amb)">${w.age}세</div>
+<div class="sts s${w.st}"><div class="sd"></div>${slbl(w.st)}</div>
+<div><div style="display:flex;align-items:center;gap:8px">
+  <div class="rbar" style="width:80%"><div class="rfill" style="width:${rs}%;background:${rc}"></div></div>
+  <span style="font-size:14px;font-weight:700;color:${rc}">${rs}%</span></div></div>
+<div style="font-size:var(--fs-sm);color:var(--ink3)">${adv[ai]}</div>
+<div style="position:relative"><div class="eltt">
+  <div style="font-size:11px;font-weight:700;color:#9A7060;margin-bottom:9px">${w.name} · ${w.age}세</div>
+  <div class="etr"><span class="etk">${t('tthr')}</span><span class="etv">${w.hr}bpm</span></div>
+  <div class="etr"><span class="etk">${t('ttt')}</span><span class="etv">${w.temp.toFixed(1)}°C</span></div>
+  <div class="etr"><span class="etk">${t('ttf')}</span><span class="etv">${w.fat}%</span></div>
+  <div class="etr"><span class="etk">위험지수</span><span class="etv" style="color:${rc}">${rs}%</span></div>
+</div></div>
+</div>`;
+  }).join('')||`<div class="wt-empty">${t('eemp')}</div>`;
+}
+
+/* ════ TICKER ════ */
+function buildTicker(){
+  const items=[
+    `<span class="ti"><b class="tr">위험</b> 이민준 · 안전모미착용 · C-1구역 · ≤1s</span>`,
+    `<span class="ti"><b class="tw">주의</b> 압착A구역 · 고온 38.2°C · 열화상감지</span>`,
+    `<span class="ti"><b class="tw">주의</b> 정영숙(57세) · 피로지수 87% · B-1구역</span>`,
+    `<span class="ti"><b class="tg">정상</b> B구역 전체 PPE 100% 착용 확인</span>`,
+    `<span class="ti"><b class="tg">등록</b> 홍길동(742135678) · 압착 주간 · 고령 자동분류</span>`,
+    `<span class="ti"><b>SHine-K</b> 위험행동 인식 정확률 <b class="tg">≥95%</b> · 전송지연 <b class="tg">≤1s</b></span>`,
+    `<span class="ti"><b>카메라</b> 1920×1080 · 360° 회전 · 다광스펙트럼 열화상</span>`,
+  ];
+  const el=document.getElementById('ticker');
+  if(el)el.innerHTML=[...items,...items].join('');
+}
+
+/* ════ COUNTUP (改进2) ════ */
+function countUp(el,to,sfx){
+  const dur=1800,step=16,steps=Math.ceil(dur/step);
+  let cur=0,cnt=0;const inc=to/steps;
+  const t2=setInterval(()=>{
+    cur=Math.min(cur+inc,to);el.textContent=Math.round(cur).toLocaleString()+(sfx||'');
+    if(++cnt>=steps){el.textContent=to.toLocaleString()+(sfx||'');clearInterval(t2)}
+  },step);
+}
+
+/* ════ SCROLL REVEAL (改进1) ════ */
+function initReveal(){
+  const obs=new IntersectionObserver(es=>{
+    es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');obs.unobserve(e.target)}})
+  },{threshold:.12});
+  document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
+  const cu=new IntersectionObserver(es=>{
+    es.forEach(e=>{if(e.isIntersecting){
+      document.querySelectorAll('[data-to]').forEach(el=>countUp(el,+el.dataset.to,el.dataset.sx));
+      cu.disconnect();
+    }})
+  },{threshold:.4});
+  const hs=document.querySelector('.hstats');if(hs)cu.observe(hs);
+}
+
+/* ════ NAV SCROLL ════ */
+window.addEventListener('scroll',()=>document.getElementById('nav').classList.toggle('sc',scrollY>60));
+
+/* ════ CHARTS ════ */
+let cDone=false;
+function buildCharts(){
+  if(cDone||!window.Chart)return;cDone=true;
+  Chart.defaults.font.family="'Pretendard Variable',sans-serif";
+  Chart.defaults.font.size=14;Chart.defaults.color='#8B95A1';
+  new Chart(document.getElementById('cAge'),{type:'bar',data:{
+    labels:['~29','30대','40대','50대','55+'],
+    datasets:[
+      {label:L==='ko'?'일반 위험도':L==='zh'?'一般风险度':'General Risk',data:[18,24,31,45,58],backgroundColor:'#C8D9F0',borderRadius:6},
+      {label:L==='ko'?'고령 위험도':L==='zh'?'老龄风险度':'Elderly Risk',data:[null,null,null,null,82],backgroundColor:'#F04452',borderRadius:6},
+    ]},options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'top',align:'end'},tooltip:{callbacks:{label:c=>` ${c.parsed.y}점`}}},
+    scales:{y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'점'}}}}});
+  new Chart(document.getElementById('cPPE'),{type:'doughnut',data:{
+    labels:L==='ko'?['안전모 미착용','보안경 미착용','조끼 미착용','기타']:L==='zh'?['无安全帽','无护目镜','无背心','其他']:['No Helmet','No Goggles','No Vest','Other'],
+    datasets:[{data:[44,28,18,10],backgroundColor:['#F04452','#FF9F2D','#8B5CF6','#B0B8C1'],borderColor:'#fff',borderWidth:3}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',
+    plugins:{legend:{position:'right',labels:{boxWidth:14,font:{size:12}}}}}});
+  const hrs=Array.from({length:24},(_,i)=>`${String(i).padStart(2,'0')}:00`);
+  const rd=[55,62,70,60,48,42,38,72,65,52,44,40,38,42,78,82,68,55,48,44,50,56,58,52];
+  new Chart(document.getElementById('cTime'),{type:'line',data:{labels:hrs,datasets:[{
+    label:L==='ko'?'위험 예측 지수':L==='zh'?'风险预测指数':'Risk Index',data:rd,
+    borderColor:'#3182F6',backgroundColor:'rgba(49,130,246,.09)',
+    fill:true,tension:.4,pointRadius:3,pointBackgroundColor:'#3182F6',pointHoverRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.parsed.y}점`}}},
+    scales:{y:{min:20,max:100,ticks:{callback:v=>v+'점'}},
+      x:{ticks:{maxRotation:0,callback:(_,i)=>i%3===0?hrs[i]:''}}}}});
+}
+const cObs=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){cObs.disconnect();buildCharts()}},{rootMargin:'200px'});
+const cEl=document.getElementById('cAge');if(cEl)cObs.observe(cEl);
+
+
+
+
+
+/* ════ DEMO TAB SWITCH ════ */
+function demoTab(name){
+  ['cam','vital','hazard'].forEach(t=>{
+    document.getElementById('dp-'+t).style.display = t===name ? 'block' : 'none';
+    document.getElementById('dt-'+t).classList.toggle('on', t===name);
+  });
+  if(name==='vital' && !hrChart2) buildHRChart();
+  if(name==='hazard' && !hzChart2) buildHzChart();
+}
+
+/* ════ SIMULATED CAMERA ════ */
+let camMode = 'vis';
+let camTick = 0;
+
+/* Zone definitions */
+const ZONES = [
+  { id:1, name:'1 號營地 · A 區', workers:[
+      {x:.18,y:.55,heat:false,ppe:true,alert:false},
+      {x:.38,y:.55,heat:false,ppe:true,alert:false},
+      {x:.60,y:.55,heat:false,ppe:true,alert:false},
+      {x:.80,y:.55,heat:false,ppe:true,alert:false},
+    ], alertType:null },
+  { id:2, name:'2 號營地 · B 區', workers:[
+      {x:.2, y:.55,heat:false,ppe:true, alert:false},
+      {x:.42,y:.55,heat:false,ppe:false,alert:true},   // NO PPE
+      {x:.63,y:.55,heat:false,ppe:true, alert:false},
+      {x:.82,y:.55,heat:false,ppe:true, alert:false},
+    ], alertType:'ppe' },
+  { id:3, name:'3 號營地 · C 區', workers:[
+      {x:.3, y:.55,heat:true, ppe:true, alert:false},
+      {x:.62,y:.55,heat:true, ppe:true, alert:false},
+    ], alertType:'fire', bgRed:true },
+  { id:4, name:'4 號營地 · D 區', workers:[
+      {x:.28,y:.55,heat:false,ppe:true,alert:false},
+      {x:.65,y:.55,heat:false,ppe:true,alert:false},
+    ], alertType:null },
+];
+
+let activeZone = 0; // index into ZONES
+
+const MODE_LABELS = {
+  vis: {ko:'가시광 모드 · 1920×1080', zh:'可见光模式 · 1920×1080',    en:'Visible Light · 1920×1080'},
+  ir:  {ko:'적외선 모드 · 야간 커버',  zh:'红外线模式 · 夜间覆盖',      en:'Infrared · Night Coverage'},
+  th:  {ko:'열화상 모드 · 다광스펙트럼',zh:'热成像 · 多光谱',           en:'Thermal · Multi-Spectral'},
+  ext: {ko:'외부시각 모드',           zh:'外部视角',                   en:'External View'},
+  '3d':{ko:'3D시각 모드',            zh:'三维视角',                   en:'3D View'},
+  '360':{ko:'360° 운대 · 전방위',    zh:'360°云台 · 全方位',          en:'360° PTZ · Omnidirectional'},
+  ppe: {ko:'PPE감지 모드',           zh:'个人防护装备检测',             en:'PPE Detection'},
+  edge:{ko:'윤곽선 · 다층시각',       zh:'轮廓线 · 多层次视角',         en:'Edge · Multi-layer'},
+};
+
+function setCamMode(m){
+  camMode = m;
+  ['vis','ir','th','ext','3d','360','ppe','edge'].forEach(x=>{
+    document.getElementById('cm-'+x)?.classList.toggle('on', x===m);
+  });
+  const lbl = MODE_LABELS[m]?.[L] || MODE_LABELS[m]?.ko || m;
+  const r=document.getElementById('camRes'); if(r) r.textContent=lbl;
+}
+
+function switchZone(idx){
+  activeZone = idx - 1;
+  drawMainCam();
+}
+
+/* ── draw one worker silhouette ── */
+function drawWorker(ctx, wx, wy, w, h, opts){
+  const {heat, ppe, alert, mode} = opts;
+  // color based on mode
+  let bodyCol, headCol;
+  if(mode==='th'){
+    bodyCol = heat ? '#FF6B35' : '#4A7FD4';
+    headCol = heat ? '#FF3300' : '#3A6FC4';
+  } else if(mode==='ir'){
+    bodyCol = '#4A90D9'; headCol = '#3A80C9';
+  } else if(mode==='ppe'){
+    bodyCol = ppe ? '#2A9A4A' : '#CC2222';
+    headCol = ppe ? '#1A8A3A' : '#BB1111';
+  } else {
+    bodyCol = heat ? '#E84040' : '#4A90D9';
+    headCol = heat ? '#D03030' : '#3A80C9';
+  }
+
+  const px = wx * w, py = wy * h;
+  const scale = h * 0.32;
+
+  // head
+  ctx.fillStyle = headCol;
+  ctx.beginPath();
+  ctx.arc(px, py - scale*.38, scale*.13, 0, Math.PI*2);
+  ctx.fill();
+
+  // body
+  ctx.fillStyle = bodyCol;
+  ctx.fillRect(px - scale*.09, py - scale*.22, scale*.18, scale*.38);
+
+  // arms
+  ctx.fillRect(px - scale*.22, py - scale*.2, scale*.13, scale*.07);
+  ctx.fillRect(px + scale*.09, py - scale*.2, scale*.13, scale*.07);
+
+  // legs
+  ctx.fillRect(px - scale*.12, py + scale*.16, scale*.09, scale*.24);
+  ctx.fillRect(px + scale*.03, py + scale*.16, scale*.09, scale*.24);
+
+  // thermal glow
+  if(mode==='th' && heat){
+    const g = ctx.createRadialGradient(px, py, 0, px, py, scale*.5);
+    g.addColorStop(0, 'rgba(255,80,0,.22)');
+    g.addColorStop(1, 'transparent');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(px, py, scale*.5, 0, Math.PI*2); ctx.fill();
+  }
+
+  // NO PPE box
+  if(!ppe){
+    ctx.strokeStyle = '#F04452'; ctx.lineWidth = 2;
+    ctx.strokeRect(px - scale*.2, py - scale*.5, scale*.4, scale*.7);
+    ctx.fillStyle = '#F04452';
+    ctx.font = `bold ${Math.round(scale*.11)}px monospace`;
+    ctx.textAlign = 'center';
+    ctx.fillText('NO PPE', px, py - scale*.54);
+    ctx.textAlign = 'left';
+  }
+
+  // fire alert glow
+  if(alert && mode!=='th'){
+    ctx.strokeStyle='rgba(240,68,82,.6)'; ctx.lineWidth=2;
+    ctx.setLineDash([4,3]);
+    ctx.strokeRect(px-scale*.25, py-scale*.55, scale*.5, scale*.85);
+    ctx.setLineDash([]);
+  }
+}
+
+/* ── draw grid overlay ── */
+function drawGrid(ctx, w, h, col){
+  ctx.strokeStyle = col; ctx.lineWidth = .6;
+  for(let x=0;x<w;x+=40){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
+  for(let y=0;y<h;y+=40){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
+}
+
+/* ── main camera draw ── */
+function drawMainCam(){
+  const canvas = document.getElementById('camCanvas'); if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const zone = ZONES[activeZone];
+  const w = canvas.width = canvas.offsetWidth || 600;
+  const h = canvas.height = Math.round(w * 9/16);
+
+  // background
+  let bgCol;
+  if(camMode==='th' && zone.bgRed)    bgCol='#2A0808';
+  else if(camMode==='th')             bgCol='#0A0A0A';
+  else if(camMode==='ir')             bgCol='#060E1A';
+  else                                bgCol='#1A2433';
+  ctx.fillStyle=bgCol; ctx.fillRect(0,0,w,h);
+
+  // grid
+  let gridCol;
+  if(camMode==='th') gridCol='rgba(255,80,0,.05)';
+  else if(camMode==='ir') gridCol='rgba(0,180,255,.07)';
+  else gridCol='rgba(49,130,246,.06)';
+  drawGrid(ctx, w, h, gridCol);
+
+  // scanlines for IR
+  if(camMode==='ir'){
+    ctx.fillStyle='rgba(0,0,0,.12)';
+    for(let y=0;y<h;y+=3){ ctx.fillRect(0,y,w,1); }
+  }
+
+  // workers
+  zone.workers.forEach(wk=>{
+    drawWorker(ctx, wk.x, wk.y, w, h, {
+      heat: wk.heat, ppe: wk.ppe, alert: wk.alert, mode: camMode
+    });
+  });
+
+  // 360 fisheye
+  if(camMode==='360'){
+    const img = ctx.getImageData(0,0,w,h);
+    const out = ctx.createImageData(w,h);
+    const d=img.data, od=out.data;
+    const cx=w/2, cy=h/2;
+    for(let y2=0;y2<h;y2++) for(let x2=0;x2<w;x2++){
+      const nx=(x2-cx)/cx, ny=(y2-cy)/cy;
+      const r2=Math.sqrt(nx*nx+ny*ny);
+      const theta=Math.atan2(ny,nx), rD=r2*(1+.35*r2*r2);
+      const sx=Math.round((rD*Math.cos(theta)+1)/2*w);
+      const sy=Math.round((rD*Math.sin(theta)+1)/2*h);
+      const si=(Math.min(h-1,Math.max(0,sy))*w+Math.min(w-1,Math.max(0,sx)))*4;
+      const di=(y2*w+x2)*4;
+      od[di]=d[si]; od[di+1]=d[si+1]; od[di+2]=d[si+2]; od[di+3]=255;
+    }
+    ctx.putImageData(out,0,0);
+  }
+
+  // edge detect
+  if(camMode==='edge'){
+    const img=ctx.getImageData(0,0,w,h); const d=img.data;
+    const out=ctx.createImageData(w,h); const od=out.data;
+    ctx.fillStyle='#050A12'; ctx.fillRect(0,0,w,h);
+    for(let y2=1;y2<h-1;y2++) for(let x2=1;x2<w-1;x2++){
+      const gp=(px,py)=>{const i=(py*w+px)*4;return Math.round(d[i]*.3+d[i+1]*.59+d[i+2]*.11);};
+      const gx=-gp(x2-1,y2-1)+gp(x2+1,y2-1)-2*gp(x2-1,y2)+2*gp(x2+1,y2)-gp(x2-1,y2+1)+gp(x2+1,y2+1);
+      const gy=-gp(x2-1,y2-1)-2*gp(x2,y2-1)-gp(x2+1,y2-1)+gp(x2-1,y2+1)+2*gp(x2,y2+1)+gp(x2+1,y2+1);
+      const mag=Math.min(255,Math.sqrt(gx*gx+gy*gy));
+      const i=(y2*w+x2)*4;
+      od[i]=Math.round(mag*.2); od[i+1]=Math.round(mag*.7); od[i+2]=255; od[i+3]=255;
+    }
+    ctx.putImageData(out,0,0);
+  }
+
+  // timestamp
+  const now=new Date();
+  const el=document.getElementById('camTime');
+  if(el) el.textContent=now.toTimeString().slice(0,8);
+
+  // live label
+  const ll=document.getElementById('camLiveLabel');
+  if(ll) ll.textContent='● 그림 — 그림 #'+(activeZone+1);
+
+  // update status chips
+  const hasNoPPE  = zone.workers.some(wk=>!wk.ppe);
+  const hasHeat   = zone.workers.some(wk=>wk.heat);
+  const ppeEl=document.getElementById('cs-ppe');
+  if(ppeEl){ ppeEl.className='cam-stat '+(hasNoPPE?'danger':'ok');
+    ppeEl.textContent=hasNoPPE?'⛑ PPE 미착용 감지':'⛑ PPE 정상'; }
+  const heatEl=document.getElementById('cs-heat');
+  if(heatEl){ heatEl.className='cam-stat '+(hasHeat?'danger':'ok');
+    heatEl.textContent=hasHeat?'🌡 고온 감지':'🌡 체온 정상'; }
+  const zoneEl=document.getElementById('cs-zone');
+  if(zoneEl) zoneEl.textContent='📍 '+['A','B','C','D'][activeZone]+'구역';
+}
+
+/* ── thumb canvases ── */
+function drawThumb(id, zoneIdx){
+  const canvas=document.getElementById(id); if(!canvas) return;
+  const ctx=canvas.getContext('2d');
+  const zone=ZONES[zoneIdx];
+  const w=canvas.width=canvas.offsetWidth||200;
+  const h=canvas.height=canvas.offsetHeight||100;
+
+  // bg
+  let bg='#1A2433';
+  if(zone.alertType==='fire') bg='#2A0808';
+  else if(zoneIdx===activeZone) bg='#162035';
+  ctx.fillStyle=bg; ctx.fillRect(0,0,w,h);
+
+  // mini grid
+  ctx.strokeStyle='rgba(49,130,246,.05)'; ctx.lineWidth=.5;
+  for(let x=0;x<w;x+=24){ ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke(); }
+  for(let y=0;y<h;y+=24){ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke(); }
+
+  // workers (simplified scale)
+  zone.workers.forEach(wk=>{
+    const mode2 = zone.alertType==='fire'?'th':'vis';
+    drawWorker(ctx, wk.x, wk.y, w, h, {heat:wk.heat,ppe:wk.ppe,alert:wk.alert,mode:mode2});
+  });
+
+  // active zone highlight
+  if(zoneIdx===activeZone){
+    ctx.strokeStyle='rgba(49,130,246,.4)'; ctx.lineWidth=2;
+    ctx.strokeRect(1,1,w-2,h-2);
+  }
+}
+
+function drawAllThumbs(){
+  ZONES.forEach((z,i)=>drawThumb('ct'+(i+1), i));
+}
+
+/* ── animate workers (subtle movement) ── */
+let wiggle=Array(4).fill(null).map(()=>({dx:0,dy:0}));
+function animateCam(){
+  camTick++;
+  // subtly animate workers
+  ZONES.forEach((z,zi)=>{
+    z.workers.forEach((wk,wi)=>{
+      if(camTick%(30+wi*7)===0){
+        wk.x = Math.max(.08, Math.min(.92, wk.x + (Math.random()-.5)*.03));
+      }
+    });
+  });
+  if(camTick%2===0) drawMainCam();
+  if(camTick%6===0) drawAllThumbs();
+  // alert blink: randomly trigger PPE missing in zone 2
+  if(camTick%120===0){
+    const wk=ZONES[1].workers[1];
+    wk.ppe = !wk.ppe;
+  }
+}
+
+/* current sub-mode */
+let camSubMode = 'sim';
+let camStream = null, realAnimFrame = null, prevRealFrame = null;
+let realFpsT = performance.now(), realFpsN = 0;
+
+function camSubTab(mode){
+  camSubMode = mode;
+  document.getElementById('csb-sim').classList.toggle('on', mode==='sim');
+  document.getElementById('csb-real').classList.toggle('on', mode==='real');
+
+  const simCanvas   = document.getElementById('camCanvas');
+  const realLayer   = document.getElementById('realLayer');
+  const startScreen = document.getElementById('camStartScreen');
+
+  if(mode==='sim'){
+    simCanvas.style.display='block';
+    if(realLayer) realLayer.style.display='none';
+    if(startScreen) startScreen.style.display='none';
+    stopRealCam();
+    const ll=document.getElementById('camLiveLabel');
+    if(ll) ll.textContent='● 시뮬레이션 — 구역 #'+(activeZone+1);
+  } else {
+    simCanvas.style.display='none';
+    if(realLayer) realLayer.style.display='none';
+    if(startScreen){ startScreen.style.display='flex'; }
+    const ll=document.getElementById('camLiveLabel');
+    if(ll) ll.textContent='● 실제 카메라';
+  }
+}
+
+async function startRealCam(){
+  const errEl=document.getElementById('cam-err');
+  if(errEl) errEl.style.display='none';
+  try{
+    camStream = await navigator.mediaDevices.getUserMedia({
+      video:{width:{ideal:1280},height:{ideal:720},facingMode:'user'}, audio:false
+    });
+    const video=document.getElementById('camVideo');
+    video.srcObject=camStream;
+    await video.play();
+    const realLayer=document.getElementById('realLayer');
+    const startScreen=document.getElementById('camStartScreen');
+    if(realLayer) realLayer.style.display='block';
+    if(startScreen) startScreen.style.display='none';
+    const rc=document.getElementById('camRealCanvas');
+    video.addEventListener('loadedmetadata',()=>{
+      if(rc){ rc.width=video.videoWidth||640; rc.height=video.videoHeight||480; }
+    });
+    startRealLoop();
+    const ll=document.getElementById('camLiveLabel');
+    if(ll) ll.textContent='● 실제 카메라 LIVE';
+  } catch(e){
+    const errEl=document.getElementById('cam-err');
+    if(errEl){ errEl.style.display='block'; errEl.textContent='카메라 오류: '+e.message; }
+  }
+}
+
+function stopRealCam(){
+  if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
+  if(realAnimFrame){ cancelAnimationFrame(realAnimFrame); realAnimFrame=null; }
+  prevRealFrame=null;
+}
+
+function startRealLoop(){
+  const video=document.getElementById('camVideo');
+  const canvas=document.getElementById('camRealCanvas');
+  if(!canvas||!video) return;
+  const ctx=canvas.getContext('2d',{willReadFrequently:true});
+
+  function loop(){
+    realAnimFrame=requestAnimationFrame(loop);
+    if(video.readyState<2) return;
+    canvas.width=video.videoWidth||640;
+    canvas.height=video.videoHeight||480;
+    ctx.drawImage(video,0,0,canvas.width,canvas.height);
+
+    if(camMode!=='vis'){
+      const frame=ctx.getImageData(0,0,canvas.width,canvas.height);
+      applyRealFilter(ctx,frame,canvas.width,canvas.height);
+    }
+
+    // fps
+    realFpsN++;
+    const now2=performance.now();
+    if(now2-realFpsT>=1000){
+      const fps2=Math.round(realFpsN*1000/(now2-realFpsT));
+      const fe=document.getElementById('camFpsLbl'); if(fe) fe.textContent='FPS: '+fps2;
+      realFpsN=0; realFpsT=now2;
+    }
+    // timestamp
+    const te=document.getElementById('camTime');
+    if(te) te.textContent=new Date().toTimeString().slice(0,8);
+  }
+  loop();
+}
+
+function applyRealFilter(ctx,frame,w,h){
+  const d=frame.data;
+  if(camMode==='ir'){
+    for(let i=0;i<d.length;i+=4){
+      const g=Math.round(d[i]*.299+d[i+1]*.587+d[i+2]*.114);
+      d[i]=Math.round(g*.35); d[i+1]=Math.round(g*.65); d[i+2]=Math.min(255,Math.round(g*1.3));
+    }
+    ctx.putImageData(frame,0,0);
+    ctx.fillStyle='rgba(0,0,0,.12)';
+    for(let y=0;y<h;y+=3) ctx.fillRect(0,y,w,1);
+  } else if(camMode==='th'){
+    const out=ctx.createImageData(w,h); const od=out.data;
+    for(let i=0;i<d.length;i+=4){
+      const v=(d[i]*.299+d[i+1]*.587+d[i+2]*.114)/255;
+      let r,g2,b;
+      if(v<.25){r=0;g2=0;b=Math.round(v*4*200+55);}
+      else if(v<.5){r=0;g2=Math.round((v-.25)*4*255);b=200;}
+      else if(v<.75){r=Math.round((v-.5)*4*255);g2=255;b=Math.round(200*(1-(v-.5)*4));}
+      else{r=255;g2=Math.round(255*(1-(v-.75)*4));b=0;}
+      od[i]=r;od[i+1]=g2;od[i+2]=b;od[i+3]=255;
+    }
+    ctx.putImageData(out,0,0);
+  } else if(camMode==='ppe'){
+    const out=ctx.createImageData(w,h); const od=out.data;
+    for(let i=0;i<d.length;i+=4){
+      const r2=d[i],g2=d[i+1],b2=d[i+2];
+      const isG=g2>r2+30&&g2>b2+30;
+      const isY=r2>160&&g2>160&&b2<100;
+      if(isG){od[i]=0;od[i+1]=Math.min(255,g2*1.5);od[i+2]=0;}
+      else if(isY){od[i]=Math.min(255,r2*1.3);od[i+1]=Math.min(255,g2*1.1);od[i+2]=0;}
+      else{const gv=Math.round(r2*.299+g2*.587+b2*.114);od[i]=gv;od[i+1]=gv;od[i+2]=gv;}
+      od[i+3]=255;
+    }
+    ctx.putImageData(out,0,0);
+    ctx.fillStyle='rgba(0,255,128,.8)'; ctx.font='bold 14px monospace';
+    ctx.fillText('▶ PPE SCAN',10,22);
+  } else if(camMode==='edge'){
+    const out=ctx.createImageData(w,h); const od=out.data;
+    for(let y2=1;y2<h-1;y2++) for(let x2=1;x2<w-1;x2++){
+      const gp=(px,py)=>{const i=(py*w+px)*4;return Math.round(d[i]*.3+d[i+1]*.59+d[i+2]*.11);};
+      const gx=-gp(x2-1,y2-1)+gp(x2+1,y2-1)-2*gp(x2-1,y2)+2*gp(x2+1,y2)-gp(x2-1,y2+1)+gp(x2+1,y2+1);
+      const gy=-gp(x2-1,y2-1)-2*gp(x2,y2-1)-gp(x2+1,y2-1)+gp(x2-1,y2+1)+2*gp(x2,y2+1)+gp(x2+1,y2+1);
+      const mag=Math.min(255,Math.sqrt(gx*gx+gy*gy));
+      const i=(y2*w+x2)*4;
+      od[i]=Math.round(mag*.2);od[i+1]=Math.round(mag*.7);od[i+2]=255;od[i+3]=255;
+    }
+    ctx.putImageData(out,0,0);
+  } else if(camMode==='360'){
+    const out=ctx.createImageData(w,h); const od=out.data;
+    const cx=w/2,cy=h/2;
+    for(let y2=0;y2<h;y2++) for(let x2=0;x2<w;x2++){
+      const nx=(x2-cx)/cx,ny=(y2-cy)/cy;
+      const r2=Math.sqrt(nx*nx+ny*ny),theta=Math.atan2(ny,nx),rD=r2*(1+.3*r2*r2);
+      const sx=Math.round((rD*Math.cos(theta)+1)/2*w);
+      const sy=Math.round((rD*Math.sin(theta)+1)/2*h);
+      const si=(Math.min(h-1,Math.max(0,sy))*w+Math.min(w-1,Math.max(0,sx)))*4;
+      const di=(y2*w+x2)*4;
+      od[di]=d[si];od[di+1]=d[si+1];od[di+2]=d[si+2];od[di+3]=255;
+    }
+    ctx.putImageData(out,0,0);
+  }
+}
+
+function initCamera(){
+  drawMainCam();
+  drawAllThumbs();
+  setInterval(animateCam, 1000/30);
+}
+
+
+/* ════ VITALS LIVE ════ */
+let hrChart2 = null;
+let hrData = Array.from({length:30}, ()=>72 + Math.round(Math.random()*20));
+let selWorker = 0;
+function buildWorkerSelector(){
+  const el = document.getElementById('workerSelector');
+  if(!el) return;
+  el.innerHTML = WS.slice(0,6).map((w,i)=>`
+  <button class="wsel-btn ${i===0?'on':''} ${w.age>=55?'el':''}" onclick="selW(${i})">
+    ${w.name}${w.age>=55?' 👴':''}
+  </button>`).join('');
+}
+function selW(i){
+  selWorker=i;
+  document.querySelectorAll('.wsel-btn').forEach((b,j)=>b.classList.toggle('on',j===i));
+  const w=WS[i];
+  document.getElementById('vitalName').textContent=`${w.name} (${w.age}세)`;
+  updateGauges(w);
+  hrData = Array.from({length:30},()=>w.hr + Math.round((Math.random()-.5)*10));
+  if(hrChart2) hrChart2.data.datasets[0].data=[...hrData]; hrChart2?.update('none');
+}
+function updateGauges(w){
+  const hrc=w.hr>=100?'var(--r)':w.hr>=88?'var(--w)':'var(--g)';
+  const sc=w.spo2<=94?'var(--r)':w.spo2<=96?'var(--w)':'var(--g)';
+  const tc2=w.temp>=38?'var(--r)':w.temp>=37.2?'var(--w)':'var(--g)';
+  const fc2=w.fat>=70?'var(--r)':w.fat>=40?'var(--w)':'var(--g)';
+  document.getElementById('vv-hr').textContent=w.hr;
+  document.getElementById('vf-hr').style.width=Math.round((w.hr-40)/80*100)+'%';
+  document.getElementById('vf-hr').style.background=hrc;
+  document.getElementById('vv-spo2').textContent=w.spo2;
+  document.getElementById('vf-spo2').style.width=(w.spo2-90)*10+'%';
+  document.getElementById('vf-spo2').style.background=sc;
+  document.getElementById('vv-temp').textContent=w.temp.toFixed(1);
+  document.getElementById('vf-temp').style.width=Math.round((w.temp-36)/2.5*100)+'%';
+  document.getElementById('vf-temp').style.background=tc2;
+  document.getElementById('vv-fat').textContent=w.fat;
+  document.getElementById('vf-fat').style.width=w.fat+'%';
+  document.getElementById('vf-fat').style.background=fc2;
+}
+function buildHRChart(){
+  const ctx=document.getElementById('hrChart');
+  if(!ctx||!window.Chart) return;
+  const w=WS[0]||{};
+  hrChart2=new Chart(ctx,{type:'line',data:{
+    labels:Array.from({length:30},(_,i)=>''),
+    datasets:[{data:[...hrData],borderColor:'#F04452',backgroundColor:'rgba(240,68,82,.08)',
+      fill:true,tension:.4,pointRadius:0,borderWidth:2}]
+  },options:{responsive:true,maintainAspectRatio:false,animation:{duration:0},
+    plugins:{legend:{display:false},tooltip:{enabled:false}},
+    scales:{y:{min:50,max:130,ticks:{callback:v=>v+'bpm',font:{size:11}}},
+      x:{display:false}}}});
+}
+function liveVitals(){
+  if(!WS.length) return;
+  const w=WS[selWorker]||WS[0];
+  // wiggle HR
+  const newHR = Math.max(55, Math.min(125, w.hr + Math.round((Math.random()-.5)*6)));
+  hrData.shift(); hrData.push(newHR);
+  if(hrChart2){ hrChart2.data.datasets[0].data=[...hrData]; hrChart2.update('none'); }
+}
+function initVitals(){
+  buildWorkerSelector();
+  const obs=new IntersectionObserver(es=>{
+    if(es.some(e=>e.isIntersecting)){ buildHRChart(); obs.disconnect(); }
+  },{rootMargin:'200px'});
+  const ve=document.getElementById('hrChart'); if(ve) obs.observe(ve);
+  if(WS[0]) updateGauges(WS[0]);
+  setInterval(liveVitals, 1200);
+}
+
+/* ════ HAZARD SENSORS LIVE ════ */
+let hzChart2=null;
+const HZ_HIST = {
+  temp: Array.from({length:30},()=>+(36+Math.random()*3.5).toFixed(1)),
+  co:   Array.from({length:30},()=>Math.round(5+Math.random()*20)),
+  dust: Array.from({length:30},()=>Math.round(20+Math.random()*45)),
+};
+function buildHzChart(){
+  const ctx=document.getElementById('hzChart');
+  if(!ctx||!window.Chart) return;
+  const labels=Array.from({length:30},(_,i)=>i===0?'-30m':i===15?'-15m':i===29?'지금':'');
+  hzChart2=new Chart(ctx,{type:'line',data:{labels,datasets:[
+    {label:'온도(°C)',data:[...HZ_HIST.temp],borderColor:'#F04452',backgroundColor:'rgba(240,68,82,.07)',fill:true,tension:.4,pointRadius:0,yAxisID:'y1'},
+    {label:'CO(ppm)',data:[...HZ_HIST.co],borderColor:'#FF9F2D',backgroundColor:'rgba(255,159,45,.05)',fill:false,tension:.4,pointRadius:0,yAxisID:'y2'},
+    {label:'분진(μg)',data:[...HZ_HIST.dust],borderColor:'#8B5CF6',backgroundColor:'rgba(139,92,246,.05)',fill:false,tension:.4,pointRadius:0,yAxisID:'y2'},
+  ]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:300},
+    plugins:{legend:{position:'top',align:'end',labels:{font:{size:12},boxWidth:12}}},
+    scales:{
+      y1:{position:'left',title:{display:true,text:'°C'},ticks:{font:{size:11}}},
+      y2:{position:'right',title:{display:true,text:'ppm / μg'},grid:{drawOnChartArea:false},ticks:{font:{size:11}}},
+      x:{ticks:{font:{size:11}}}
+    }}});
+}
+function liveHazard(){
+  const tEl=document.getElementById('hvv-temp');
+  const cEl=document.getElementById('hvv-co');
+  const dEl=document.getElementById('hvv-dust');
+  if(!tEl) return;
+  const newT = +(37.5+Math.random()*1.5).toFixed(1);
+  const newC = Math.round(8+Math.random()*18);
+  const newD = Math.round(30+Math.random()*35);
+  tEl.textContent=newT; cEl.textContent=newC; dEl.textContent=newD;
+  document.getElementById('hf-temp').style.width=Math.round((newT-35)/5*100)+'%';
+  document.getElementById('hf-co').style.width=Math.round(newC/50*100)+'%';
+  document.getElementById('hf-dust').style.width=Math.round(newD/75*100)+'%';
+  // status colors
+  const ts=document.querySelector('#hz-temp .hz-status');
+  if(ts){ ts.className='hz-status '+(newT>=38?'danger':newT>=37?'warn':'ok'); }
+  HZ_HIST.temp.shift(); HZ_HIST.temp.push(newT);
+  HZ_HIST.co.shift();   HZ_HIST.co.push(newC);
+  HZ_HIST.dust.shift(); HZ_HIST.dust.push(newD);
+  if(hzChart2){
+    hzChart2.data.datasets[0].data=[...HZ_HIST.temp];
+    hzChart2.data.datasets[1].data=[...HZ_HIST.co];
+    hzChart2.data.datasets[2].data=[...HZ_HIST.dust];
+    hzChart2.update('none');
+  }
+}
+function initHazard(){
+  const obs=new IntersectionObserver(es=>{
+    if(es.some(e=>e.isIntersecting)){ buildHzChart(); obs.disconnect(); }
+  },{rootMargin:'200px'});
+  const he=document.getElementById('hzChart'); if(he) obs.observe(he);
+  setInterval(liveHazard, 1500);
+}
+
+/* ── add nav items ── */
+function addNavItems(){
+  const ul=document.querySelector('.nav-list');
+  if(!ul||document.getElementById('nav-cam')) return;
+}
+
+/* ════ RENDER ALL ════ */
+function renderAll(){rtbl();renderEl();renderRec();updStats();renderFeats();}
+
+/* ════ INIT ════ */
+
+/* ════ AI PREDICT SLIDER ════ */
+function updateAIPredict(){
+  const elderly=parseInt(document.getElementById('sl-elderly')?.value||20);
+  const ppe    =parseInt(document.getElementById('sl-ppe')?.value||15);
+  const temp   =parseInt(document.getElementById('sl-temp')?.value||35);
+  const fat    =parseInt(document.getElementById('sl-fat')?.value||40);
+  document.getElementById('sl-elderly-val').textContent=elderly+'%';
+  document.getElementById('sl-ppe-val').textContent=ppe+'%';
+  document.getElementById('sl-temp-val').textContent=temp+'°C';
+  document.getElementById('sl-fat-val').textContent=fat+'%';
+
+  // AI risk formula
+  const risk=Math.min(100,Math.round(
+    elderly*.45 + ppe*.55 + Math.max(0,temp-30)*2.5 + fat*.25
+  ));
+  const numEl=document.getElementById('aiRiskNum');
+  const lblEl=document.getElementById('aiRiskLbl');
+  const cardEl=document.getElementById('aiRiskCard');
+  const fEl=document.getElementById('aiRiskFactors');
+  if(!numEl) return;
+  numEl.textContent=risk;
+  let col,lbl,bg;
+  if(risk>=70){col='var(--r)';lbl=L==='ko'?'위험':L==='zh'?'危险':'Danger';bg='var(--rbg)';}
+  else if(risk>=40){col='var(--w)';lbl=L==='ko'?'주의':L==='zh'?'警告':'Caution';bg:'var(--wbg)';}
+  else{col='var(--g)';lbl=L==='ko'?'안전':L==='zh'?'安全':'Safe';bg='var(--gbg)';}
+  numEl.style.color=col;
+  if(lblEl){lblEl.textContent=lbl;lblEl.style.color=col;}
+  if(cardEl){cardEl.style.borderColor=col;cardEl.style.background=bg;}
+  if(fEl){
+    const factors=[
+      {l:L==='ko'?'고령 비율':L==='zh'?'老龄比例':'Elderly ratio',v:elderly+'%',c:elderly>40?'var(--r)':elderly>20?'var(--w)':'var(--g)'},
+      {l:L==='ko'?'PPE 미착용':L==='zh'?'PPE违规':'PPE violation',v:ppe+'%',c:ppe>30?'var(--r)':ppe>10?'var(--w)':'var(--g)'},
+      {l:L==='ko'?'온도':L==='zh'?'温度':'Temperature',v:temp+'°C',c:temp>38?'var(--r)':temp>33?'var(--w)':'var(--g)'},
+      {l:L==='ko'?'피로도':L==='zh'?'疲劳度':'Fatigue',v:fat+'%',c:fat>70?'var(--r)':fat>40?'var(--w)':'var(--g)'},
+    ];
+    fEl.innerHTML=factors.map(f=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;
+        padding:7px 10px;background:var(--bg2);border-radius:7px;font-size:12px">
+        <span style="color:var(--ink3);font-weight:500">${f.l}</span>
+        <span style="font-weight:800;font-family:monospace;color:${f.c}">${f.v}</span>
+      </div>`).join('');
+  }
+}
+
+/* ════ QR CODE (simple pixel art) ════ */
+function drawQR(){
+  const canvas=document.getElementById('qrCanvas');
+  if(!canvas) return;
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,78,78);
+  // Simple decorative QR-like pattern representing GUOYUNYUN 202317100
+  const pattern=[
+    '1110111011101',
+    '1000001010001',
+    '1011101011101',
+    '1011100011101',
+    '1011101010001',
+    '1000000011101',
+    '1110111011100',
+    '0000000000000',
+    '1101011010101',
+    '0010101101010',
+    '1110011011101',
+    '0001100100001',
+    '1110111011101',
+  ];
+  const cell=6;
+  ctx.fillStyle='#191F28';
+  pattern.forEach((row,y)=>{
+    [...row].forEach((bit,x)=>{
+      if(bit==='1') ctx.fillRect(x*cell,y*cell,cell-1,cell-1);
+    });
+  });
+}
+
+/* ════ STAGGER OBSERVER ════ */
+function initStagger(){
+  const obs=new IntersectionObserver(es=>{
+    es.forEach(e=>{
+      if(e.isIntersecting){
+        const children=[...e.target.children];
+        children.forEach((c,i)=>{
+          setTimeout(()=>c.classList.add('vis'),i*80);
+        });
+        obs.unobserve(e.target);
+      }
+    });
+  },{threshold:.1});
+  document.querySelectorAll('.stagger-grid').forEach(g=>obs.observe(g));
+}
+
+
+buildTicker();initReveal();initTooltips();setL('ko');initCamera();initVitals();initHazard();initStagger();updateAIPredict();drawQR();
+</script>
+</body>
+</html>
